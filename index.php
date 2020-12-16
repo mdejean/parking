@@ -828,7 +828,6 @@ if (cmd('blocks')) {
     $conn->beginTransaction();
     
     $get_signs = $conn->prepare('
-        with b (bctcb2010) as (select :bctcb2010)
         select
             os.order_no,
             s.seq,
@@ -845,12 +844,11 @@ if (cmd('blocks')) {
         from sign s
         join sign_restriction sr on s.mutcd_code = sr.mutcd_code
         join order_segment os on os.order_no = s.order_no
-        left join (select * from blockface_geom natural join b) bg on bg.blockface = os.blockface
-        join b on coalesce(bg.bctcb2010, os.bctcb2010) = b.bctcb2010
+        left join (select * from blockface_geom where bctcb2010 = :bctcb2010) bg on bg.blockface = os.blockface
+        where coalesce(bg.bctcb2010, os.bctcb2010) = :bctcb2010
         order by os.order_no, s.seq
     ');
     $get_geometry = $conn->prepare('
-        with b (bctcb2010) as (select :bctcb2010)
         select
             os.order_no,
             l.main_st,
@@ -858,14 +856,13 @@ if (cmd('blocks')) {
             l.to_st,
             l.sos,
             ST_AsGeoJSON(ST_Transform(ST_Union(geom), 4326), 6, 0) geojson
-        from (select * from blockface_geom natural join b) bg
+        from (select * from blockface_geom where bctcb2010 = :bctcb2010) bg
         full outer join order_segment os on bg.blockface = os.blockface
         left join location l on l.order_no = os.order_no
-        join b on coalesce(bg.bctcb2010, os.bctcb2010) = b.bctcb2010
+        where coalesce(bg.bctcb2010, os.bctcb2010) = :bctcb2010
         group by os.order_no, l.main_st, l.from_st, l.to_st, l.sos
     ');
     $get_parking = $conn->prepare('
-        with b (bctcb2010) as (select :bctcb2010)
         select
             os.order_no,
             p.day,
@@ -873,7 +870,7 @@ if (cmd('blocks')) {
             p.type,
             sum(p.length) length
         from order_segment os
-        left join (select * from blockface_geom natural join b) bg on bg.blockface = os.blockface
+        left join (select * from blockface_geom where bctcb2010 = :bctcb2010) bg on bg.blockface = os.blockface
         join parking p on p.order_no = os.order_no
         where coalesce(bg.bctcb2010, os.bctcb2010) = :bctcb2010
         group by os.order_no, p.day, p.period, p.type');
