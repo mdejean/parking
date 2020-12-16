@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+    <title>Parking Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@latest/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/proj4@latest/dist/proj4-src.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@latest/dist/Chart.min.js"></script>
+    <script src="json_table.js"></script>
+    <style type='text/css'>
+html, body {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font: menu;
+    line-height: 1;
+    vertical-align: top;
+}
+
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+#map {
+    flex: 1;
+}
+
+#split::after {
+    content: "Split";
+}
+
+#split, #select {
+    border: 1px solid black;
+}
+
+#select::after {
+    content: "Select";
+}
+
+.line {
+    width: 5em;
+    height: 0;
+    margin-right: 5px;
+    vertical-align: middle;
+    border: 2pt solid;
+    display: inline-block;
+}
+
+.tiles {
+    filter: saturate(70%);
+}
+
+#me {
+    float: right;
+}
+#bottom {
+    flex: 0;
+    padding: 4px 1em 3px 1em;
+}
+
+
+		#chartjs-tooltip {
+			opacity: 1;
+			position: absolute;
+			background: rgba(0, 0, 0, .7);
+			color: white;
+			border-radius: 3px;
+			pointer-events: none;
+			transform: translate(-50%, 0);
+            z-index: 999;
+		}
+
+		.chartjs-tooltip-key {
+			display: inline-block;
+			width: 10px;
+			height: 10px;
+			margin-right: 10px;
+		}
+        
+        #chartjs-tooltip tr {
+            padding: 0;
+            margin: 0;
+            height: 1.2em;
+        }
+    </style>
+</head>
+<body>
+ <h1>Parking Signs</h1>
+ <div id="map"></div>
+ <div id=bottom>
+     <div id="me"><a href="https://marcel.dejean.nyc">marcel.dejean.nyc</a></div>
+     <div id="chart"><canvas id="chart_canvas" height=40></canvas></div>
+ </div>
+ <script src="map.js">
+</script>
+</body>
+</html>

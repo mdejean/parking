@@ -1,0 +1,329 @@
+<!doctype html>
+<html>
+<head>
+ <script src="json_table.js"></script>
+ <style type='text/css'>
+html, body, tr, td, th {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font: menu;
+    font-size: 12px;
+    vertical-align: top;
+}
+
+td {
+    padding: 1pt;
+}
+
+table input, table select {
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border: 1px inset #888;
+    height: 16px;
+    vertical-align: top;
+}
+
+table select {
+    height: 18px;
+}
+
+td > * {
+    /*display: block;*/
+}
+
+table input, table select {
+    width: 100%;
+    min-width: 6em;
+}
+
+table input ~ select {
+    display: inline-block;
+    width: calc(20% - 2pt);
+}
+
+table input:last-of-type:not(:last-child) {
+    display: inline-block;
+    width: 80%;
+}
+
+table button {
+    border: 1px solid black;
+}
+
+tr:nth-child(even) {
+    background-color: #ccc;
+}
+
+td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+ </style>
+ <script>
+function create_select(a) {
+    let ret = document.createElement('select');
+    for (let i in a) {
+        let opt = document.createElement('option'); 
+        opt.value = i;
+        opt.appendChild(document.createTextNode(a[i]));
+        ret.appendChild(opt);
+    }
+    return ret;
+}
+
+var days_select_element = null; 
+fetch('index.php?lookup&t=days').then((r) => r.json().then((j) => {
+    days_select_element = create_select(j);
+    days_select_element.disabled = true;
+}));
+
+var type_select_element = null; 
+fetch('index.php?lookup&t=type').then((r) => r.json().then((j) => {
+    type_select_element = create_select(j);
+    type_select_element.disabled = true;
+}));
+
+var input_element = document.createElement('input');
+input_element.type = 'text';
+input_element.disabled = true;
+
+var hidden_element = document.createElement('input');
+hidden_element.type = 'hidden';
+
+function edit_td() {
+    let form = document.getElementById('cform');
+    let td = document.createElement('td');
+    
+    function start() {
+        let tr = td.parentElement;
+        //enable the other fields and associate them with the form
+        for (let e of tr.getElementsByTagName("*")) {
+            if (e.name) {
+                e.setAttribute('form', form.id);
+                e.disabled = false;
+            }
+        }
+        
+        //disable edit buttons
+        for (let e of document.getElementsByClassName('edit_button')) {
+            e.disabled = true;
+        }
+        
+        edit.style.display = 'none';
+        save.style.display = 'block';
+        cancel.style.display = 'block';
+    }
+    
+    function add() {
+        let tr = td.parentElement;
+        let new_row = tr.cloneNode(true);
+        tr.parentElement.insertBefore(new_row, tr);
+        
+        new_row.querySelector('*[name=rowid]').value = null;
+    }
+    
+    function end() {
+        let tr = td.parentElement;
+        //disable the other fields and remove the form association
+        for (let e of tr.getElementsByTagName("*")) {
+            if (e.name) {
+                e.setAttribute('form', '');
+                e.disabled = true;
+            }
+        }
+        
+        //enable edit buttons
+        for (let e of document.getElementsByClassName('edit_button')) {
+            e.disabled = false;
+        }
+        
+        edit.style.display = 'block';
+        save.style.display = 'none';
+        cancel.style.display = 'none';
+    }
+    
+    let edit = document.createElement('button');
+    edit.className = "edit_button";
+    edit.innerHTML = "Edit";
+    edit.addEventListener('click', (event) => {
+        start();
+    });
+    
+    let save = document.createElement('button');
+    save.innerHTML = "Save";
+    save.style.display = 'none';
+    save.addEventListener('click', (event) => {
+        let fd = new FormData(form);
+        fetch('index.php?add_sign_restriction', {
+            method: 'POST',
+            body: fd
+        }).then((response) => {
+            if (response.ok) {
+                td.parentElement.style.backgroundColor = '#8f8';
+                end();
+            }
+            response.text().then(console.log);
+        });
+    });
+    
+    let cancel = document.createElement('button');
+    cancel.innerHTML = "Cancel";
+    cancel.style.display = 'none';
+    cancel.addEventListener('click', (event) => {
+        //TODO: reset fields?
+        end();
+    });
+    
+    let add_button = document.createElement('button');
+    add_button.innerHTML = '+';
+    add_button.addEventListener('click', add);
+    
+    td.appendChild(edit);
+    td.appendChild(save);
+    td.appendChild(cancel);
+    td.appendChild(add_button);
+    return td;
+}
+
+function input(column) {
+    return (row) => {
+        let e = input_element.cloneNode(false);
+        e.name = column;
+        e.value = row[column];
+        return e;
+    };
+}
+
+function hidden(column) {
+    return (row) => {
+        let e = hidden_element.cloneNode(false);
+        e.name = column;
+        e.value = row[column];
+        return e;
+    };
+}
+
+
+function checkbox(column) {
+    return (row) => {
+        let e = input_element.cloneNode(false);
+        e.type = 'checkbox';
+        e.name = column;
+        e.checked = row[column];
+        return e;
+    }
+}
+
+
+function days_select(column) {
+    return (row) => {
+        let e = days_select_element.cloneNode(true);
+        if (!row[column]) {
+            let opt = document.createElement('option');
+            opt.setAttribute('value', '');
+            opt.selected = true;
+            e.appendChild(opt);
+        }
+        e.name = column;
+        for (let option of e.children) {
+            if (option.value == row[column]) {
+                option.selected = true;
+            }
+        }
+        return e;
+    }
+}
+
+function type_select(column) {
+    return (row) => {
+        let e = type_select_element.cloneNode(true);
+        if (!row[column]) {
+            let opt = document.createElement('option');
+            opt.setAttribute('value', '');
+            opt.selected = true;
+            e.appendChild(opt);
+        }
+        e.name = column;
+        for (let option of e.children) {
+            if (option.value == row[column]) {
+                option.selected = true;
+            }
+        }
+        return e;
+    }
+}
+
+function text(column) {
+    return (row) => {
+        return document.createTextNode(row[column] || '');
+    }
+}
+
+var sign_types = [];
+
+function regenerate() {
+    let e = document.getElementById('table');
+    e.innerHTML = '';
+    
+    let filtered = sign_types.filter((row) =>
+            (!row['rowid'] || document.getElementById('all').checked) &&
+            ((!row['days'] || !row['type'] || row['start_time'] == null || row['checked'] == null) || document.getElementById('valid').checked) &&
+            (!row['checked'] || document.getElementById('checked').checked)
+            );
+    let table = document.createElement('table');
+    for (let row of filtered) {
+        let tr = document.createElement('tr');
+        
+        tr.appendChild(edit_td());
+        tr.appendChild(hidden('rowid')(row));
+        tr.appendChild(hidden('mutcd_code')(row));
+        for (let column of ['days', 'type', 'start_time', 'end_time', 'checked']) {
+            let td = document.createElement('td');
+            let f = input;
+            if (column == 'days') f = days_select;
+            if (column == 'type') f = type_select;
+            if (column == 'checked') f = checkbox;
+            td.appendChild(f(column)(row));
+            tr.appendChild(td);
+        }
+        
+        let td = document.createElement('td');
+        if (row['description']) {
+            td.appendChild(text('mutcd_code')(row));
+            td.appendChild(document.createTextNode(": "));
+            td.appendChild(text('description')(row));
+        }
+        tr.appendChild(td);
+        
+        table.appendChild(tr);
+    }
+    
+    e.appendChild(table);
+}
+
+fetch('index.php?sign_types').then(function(response) {
+    response.json().then(function(content) {
+        sign_types = content;
+        regenerate();
+    });
+});
+window.addEventListener('load', function() {
+    document.getElementById('all').addEventListener('change', regenerate);
+    document.getElementById('valid').addEventListener('change', regenerate);
+});
+ </script>
+</head>
+<body>
+<div id=options>
+<label>Show parsed sign types<input type=checkbox id=all checked></label>
+<label>Show valid sign types<input type=checkbox id=valid checked></label>
+<label>Show checked sign types<input type=checkbox id=checked checked></label>
+</div>
+<div id="table"></div>
+<form id="cform"></form>
+</body>
+</html>

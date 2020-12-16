@@ -1,0 +1,7 @@
+boro SG_KEY_BOR
+order_no SG_ORDER_N
+seq SG_SEQNO_N
+mutcd_code SG_MUTCD_C
+distx SR_DIST
+sign_fc SG_SIGN_FC
+arrow SG_ARROW_D
