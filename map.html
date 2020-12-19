@@ -6,6 +6,8 @@
     <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/proj4@latest/dist/proj4-src.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@latest/dist/Chart.min.js"></script>
+    <script src="html_tooltip.js"></script>
+    <link rel="stylesheet" href="html_tooltip.css">
     <script src="json_table.js"></script>
     <style type='text/css'>
 html, body {
@@ -72,31 +74,6 @@ time, mark, audio, video {
     flex: 0;
     padding: 4px 1em 3px 1em;
 }
-
-
-		#chartjs-tooltip {
-			opacity: 1;
-			position: absolute;
-			background: rgba(0, 0, 0, .7);
-			color: white;
-			border-radius: 3px;
-			pointer-events: none;
-			transform: translate(-50%, 0);
-            z-index: 999;
-		}
-
-		.chartjs-tooltip-key {
-			display: inline-block;
-			width: 10px;
-			height: 10px;
-			margin-right: 10px;
-		}
-        
-        #chartjs-tooltip tr {
-            padding: 0;
-            margin: 0;
-            height: 1.2em;
-        }
     </style>
 </head>
 <body>
