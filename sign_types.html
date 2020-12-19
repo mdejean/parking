@@ -158,7 +158,7 @@ function edit_td() {
     save.style.display = 'none';
     save.addEventListener('click', (event) => {
         let fd = new FormData(form);
-        fetch('index.php?add_sign_restriction', {
+        fetch('index.php?add_sign_regulation', {
             method: 'POST',
             body: fd
         }).then((response) => {

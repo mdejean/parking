@@ -25,7 +25,7 @@ psql -v ON_ERROR_STOP=1 -f supersedes.sql parking
 psql -v ON_ERROR_STOP=1 -f order_segment.sql parking
 php -f index.php order_segment
 
-psql -v ON_ERROR_STOP=1 -f sign_restriction.sql parking
+psql -v ON_ERROR_STOP=1 -f sign_regulation.sql parking
 php -f index.php interpret_signs
 
 psql -v ON_ERROR_STOP=1 -f parking.sql parking

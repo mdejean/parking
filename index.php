@@ -89,7 +89,7 @@ if (cmd('sign_types')) {
             max(description) description
         from sign s
         group by mutcd_code) s
-    left join sign_restriction sr on s.mutcd_code = sr.mutcd_code
+    left join sign_regulation sr on s.mutcd_code = sr.mutcd_code
     order by s.mutcd_code, sr.id') or trigger_error(print_r($conn->errorInfo(), true), E_USER_ERROR);
     
     echo json_encode($result->fetchAll(PDO::FETCH_ASSOC));
@@ -98,8 +98,8 @@ if (cmd('sign_types')) {
 if (cmd('lookup')) {
     header('Content-Type: application/json');
     $result = $conn->query($_GET['t'] == 'days' 
-        ? 'select days, description from lookup_restriction_days' 
-        : 'select type, description from lookup_restriction_type'
+        ? 'select days, description from lookup_regulation_days' 
+        : 'select type, description from lookup_regulation_type'
     ) or trigger_error(print_r($conn->errorInfo(), true), E_USER_ERROR);
 
     echo json_encode(array_reduce(
@@ -109,7 +109,7 @@ if (cmd('lookup')) {
     ));
 }
 
-if (cmd('add_sign_restriction')) {
+if (cmd('add_sign_regulation')) {
 $columns = [
         'days',
         'type',
@@ -120,14 +120,14 @@ $columns = [
 
     $q = null;
     if (!empty($_POST['rowid'])) {
-        $q = $conn->prepare('update sign_restriction set ' 
+        $q = $conn->prepare('update sign_regulation set ' 
             . implode(',', array_map(function($v) {return $v . ' = :' . $v;}, $columns))
             . ' where id = :id');
         //renamed from id to rowid because of conflict with js property
         $q->bindValue(':id', $_POST['rowid']);
     } else {
         $q = $conn->prepare(
-            'insert into sign_restriction (' 
+            'insert into sign_regulation (' 
             . implode(',', $columns) 
             . ') values (' 
             . implode(',', array_map(function($v) {return ':' . $v;}, $columns)) 
@@ -342,7 +342,7 @@ class Regulation {
         ];
 
         $q = $conn->prepare(
-            'insert into sign_restriction (' 
+            'insert into sign_regulation (' 
             . implode(',', $columns) 
             . ') values (' 
             . implode(',', array_map(function($v) {return ':' . $v;}, $columns)) 
@@ -620,7 +620,7 @@ from sign_types t1
 left join supersedes su on t1.mutcd_code = su.mutcd_code
 left join sign_types t2 on su.by = t2.mutcd_code
 where coalesce(t2.mutcd_code, t1.mutcd_code) not in (
-    select mutcd_code from sign_restriction group by mutcd_code
+    select mutcd_code from sign_regulation group by mutcd_code
 )
 group by coalesce(t2.mutcd_code, t1.mutcd_code)
 order by mutcd_code') or trigger_error(print_r($conn->errorInfo(), true), E_USER_ERROR);
@@ -673,12 +673,12 @@ order by mutcd_code') or trigger_error(print_r($conn->errorInfo(), true), E_USER
     
     //invalidate partly valid signs
     $conn->query('
-update sign_restriction 
+update sign_regulation 
 set checked = null 
 where mutcd_code in (
     select 
         mutcd_code 
-    from sign_restriction 
+    from sign_regulation 
     where checked is null)');
     
     
@@ -824,10 +824,12 @@ if (cmd('tracts')) {
 }
 
 if (cmd('blocks')) {
+    $conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
     $census_blocks = $conn->query('select bctcb2010 from census_block b group by bctcb2010;')->fetchAll(PDO::FETCH_COLUMN);
     $conn->beginTransaction();
     
     $get_signs = $conn->prepare('
+        with b (bctcb2010) as (select :bctcb2010)
         select
             os.order_no,
             s.seq,
@@ -842,13 +844,14 @@ if (cmd('blocks')) {
             sr.extra,
             sr.checked
         from sign s
-        join sign_restriction sr on s.mutcd_code = sr.mutcd_code
+        join sign_regulation sr on s.mutcd_code = sr.mutcd_code
         join order_segment os on os.order_no = s.order_no
-        left join (select * from blockface_geom where bctcb2010 = :bctcb2010) bg on bg.blockface = os.blockface
-        where coalesce(bg.bctcb2010, os.bctcb2010) = :bctcb2010
+        left join (select * from blockface_geom natural join b) bg on bg.blockface = os.blockface
+        join b on coalesce(bg.bctcb2010, os.bctcb2010) = b.bctcb2010
         order by os.order_no, s.seq
     ');
     $get_geometry = $conn->prepare('
+        with b (bctcb2010) as (select :bctcb2010)
         select
             os.order_no,
             l.main_st,
@@ -856,13 +859,14 @@ if (cmd('blocks')) {
             l.to_st,
             l.sos,
             ST_AsGeoJSON(ST_Transform(ST_Union(geom), 4326), 6, 0) geojson
-        from (select * from blockface_geom where bctcb2010 = :bctcb2010) bg
+        from (select * from blockface_geom natural join b) bg
         full outer join order_segment os on bg.blockface = os.blockface
         left join location l on l.order_no = os.order_no
-        where coalesce(bg.bctcb2010, os.bctcb2010) = :bctcb2010
+        join b on coalesce(bg.bctcb2010, os.bctcb2010) = b.bctcb2010
         group by os.order_no, l.main_st, l.from_st, l.to_st, l.sos
     ');
     $get_parking = $conn->prepare('
+        with b (bctcb2010) as (select :bctcb2010)
         select
             os.order_no,
             p.day,
@@ -870,7 +874,7 @@ if (cmd('blocks')) {
             p.type,
             sum(p.length) length
         from order_segment os
-        left join (select * from blockface_geom where bctcb2010 = :bctcb2010) bg on bg.blockface = os.blockface
+        left join (select * from blockface_geom natural join b) bg on bg.blockface = os.blockface
         join parking p on p.order_no = os.order_no
         where coalesce(bg.bctcb2010, os.bctcb2010) = :bctcb2010
         group by os.order_no, p.day, p.period, p.type');
@@ -960,7 +964,7 @@ select
     sr.extra
 from sign s
 left join supersedes su on s.mutcd_code = su.mutcd_code
-join sign_restriction sr on sr.mutcd_code = coalesce(su.by, s.mutcd_code)
+join sign_regulation sr on sr.mutcd_code = coalesce(su.by, s.mutcd_code)
 where s.order_no = :order_no
 order by s.distx, s.seq');
     $insert_parking = $conn->prepare('
