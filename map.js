@@ -93,26 +93,26 @@ let periods = {
 };
 
 let types = {
-    'P ': "No Parking",
-    'S ': "No Standing",
-    'O ': "No Stopping",
-    'A ': "Authorized Vehicles",
+    'O':  "No Stopping",
+    'S':  "No Standing",
+    'P':  "No Parking",
+    'A':  "Authorized Vehicles",
     'MC': "Metered Commerical Parking",
-    'C ': "Commerical Vehicles",
-    'M ': "Metered Parking",
-    'L ': "Time Limited Parking",
-    '': "Free Parking"
+    'C':  "Commerical Vehicles",
+    'M':  "Metered Parking",
+    'L':  "Time Limited Parking",
+    '':   "Free Parking"
 };
 
 let colors = {
-    'P ': "#a88",
-    'S ': "#c88",
-    'O ': "#f88",
-    'A ': "#f8f",
+    'P': "#a88",
+    'S': "#c88",
+    'O': "#f88",
+    'A': "#f8f",
     'MC': "#88f",
-    'C ': "#88a",
-    'M ': "#888",
-    'L ': "#8a8",
+    'C': "#88a",
+    'M': "#888",
+    'L': "#8a8",
     ''  : "#8f8"
 };
 
