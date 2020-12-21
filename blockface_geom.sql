@@ -71,16 +71,18 @@ from (
 
 
 --there are roughly 1000 blockfaces that are on both the left and right side of the street (????).
+--there are 18 blockfaces with no geometry (???)
 
 delete from blockface_geom 
-where 
+where (
     sos = 'r' 
-and blockface in (
-    select 
-        blockface 
-    from blockface_geom 
-    where sos = 'l' 
-    group by blockface
-);
+    and blockface in (
+        select 
+            blockface 
+        from blockface_geom 
+        where sos = 'l' 
+        group by blockface
+    )
+) or geom is null;
 
 create index ix_blockface_geom_bctcb2010 on blockface_geom(bctcb2010);
