@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-gcc -Wall -Werror -L/opt/geosupport/lib/ -lgeo -lapequiv -ledequiv -lsan -lsnd -lstExcpt -lStdLast -lStdUniv -lstEnder -lstretch -lthined -lm -lc -lgcc_s -ldl blockface.c -o blockface
+gcc -Wall -Werror blockface.c -L/opt/geosupport/lib/ -lgeo -lapequiv -ledequiv -lsan -lsnd -lstExcpt -lStdLast -lStdUniv -lstEnder -lstretch -lthined -lm -lc -lgcc_s -ldl -o blockface
 
 psql postgres -c "drop database if exists parking;"
 createdb parking 
