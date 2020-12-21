@@ -1,4 +1,3 @@
-// function prototype for NYCgeo
 #ifdef WIN32
 #include "NYCgeo.h"
 #else
@@ -7,7 +6,7 @@
 #include <dlfcn.h>
 #include <linux/limits.h>
 #endif
-// header file of Work Area layouts
+
 #include "pac.h"
 
 #include <stdio.h>
@@ -26,31 +25,6 @@
 #ifndef WIN32
 #define NYCgeo geo
 #endif
-
-struct coord {
-    char x[7];
-    char y[7];
-};
-
-struct coord intersection_coord(char node[7]) {
-    C_WA1 wa1 = {
-        .input = {
-            .func_code = {'2', ' '},
-            .platform_ind = 'P',
-            .node = {node[0], node[1], node[2], node[3], node[4], node[5], node[6]} 
-        }
-    };
-    C_WA2_F2 wa2 = {};
-    
-    NYCgeo((char*)&wa1, (char*)&wa2);
-    
-    struct coord ret;
-    
-    memcpy(ret.x, wa2.coord[0], 7);
-    memcpy(ret.y, wa2.coord[1], 7);
-    
-    return ret;
-}
 
 int main(int argc, char** argv) {
     C_WA1 wa1 = {};
