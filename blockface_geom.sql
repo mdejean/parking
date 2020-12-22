@@ -72,6 +72,7 @@ from (
 
 --there are roughly 1000 blockfaces that are on both the left and right side of the street (????).
 --there are 18 blockfaces with no geometry (???)
+--there is one blockface with empty geometry
 
 delete from blockface_geom 
 where (
@@ -83,6 +84,7 @@ where (
         where sos = 'l' 
         group by blockface
     )
-) or geom is null;
+) or geom is null
+or ST_IsEmpty(geom);
 
 create index ix_blockface_geom_bctcb2010 on blockface_geom(bctcb2010);
