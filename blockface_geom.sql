@@ -40,7 +40,7 @@ from (
 --option 1: orientation of this block
 --          sum(xto - xfrom) dx,
 --          sum(yto - yfrom) dy,
-            ST_Union(ST_OffsetCurve(geom, streetwidt)) geom
+            ST_Union(ST_OffsetCurve(geom, streetwidt/2)) geom
         from street_segment
         where lblockface is not null
         group by lblockface
@@ -54,7 +54,7 @@ from (
             max(streetwidt) width,
 --          sum(xto - xfrom) dx,
 --          sum(yto - yfrom) dy,
-            ST_Union(ST_OffsetCurve(geom, -streetwidt)) geom
+            ST_Union(ST_OffsetCurve(geom, -streetwidt/2)) geom
         from street_segment
         where rblockface is not null
         group by rblockface
