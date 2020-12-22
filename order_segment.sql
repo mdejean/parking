@@ -27,7 +27,7 @@ insert into order_segment (
 from (
     select 
         order_no, 
-        ST_Transform(ST_Union(geom), 102718) geom 
+        ST_Transform(ST_Union(geom), 2263) geom 
     from parking_regulation 
     group by order_no
 ) pr;

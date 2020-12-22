@@ -23,7 +23,7 @@ insert into blockface_geom (
     sos,
     azimuth,
     bctcb2010,
-    ST_SetSRID(geom,102718),
+    geom,
     width
 from (
     select 
