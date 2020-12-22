@@ -7,6 +7,6 @@ CREATE TABLE parking
   length numeric,
   day numeric,
   period character varying(20),
-  type character(2),
+  type character varying(2),
   primary key (order_no, day, period, start)
 );
