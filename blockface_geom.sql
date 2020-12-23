@@ -5,11 +5,12 @@ CREATE TABLE blockface_geom
     blockface character varying(10),
     sos character(1) NOT NULL,
     bctcb2010 character varying(12),
-    geom geometry,
     width numeric,
     azimuth float,
     primary key (blockface, sos)
 );
+
+SELECT AddGeometryColumn ('public','blockface_geom','geom',2263,'MULTILINESTRING',2);
 
 insert into blockface_geom (
     blockface,
@@ -23,7 +24,7 @@ insert into blockface_geom (
     sos,
     azimuth,
     bctcb2010,
-    geom,
+    ST_Multi(geom),
     width
 from (
     select 
@@ -88,3 +89,4 @@ where (
 or ST_IsEmpty(geom);
 
 create index ix_blockface_geom_bctcb2010 on blockface_geom(bctcb2010);
+create index ix_blockface_geom_geom on blockface_geom using gist(geom);
