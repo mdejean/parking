@@ -1,4 +1,6 @@
-//from examples
+"use strict";
+
+//from chartjs examples
 
 var _htmlTooltip = function(tooltip) {
     // Tooltip Element
