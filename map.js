@@ -12,41 +12,50 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 
 async function split(feature, layer) {
     let f = null;
-    if ('order_no' in feature.properties) {
-        return; //maybe show signs?
-    } else if ('block' in feature.properties) {
-        f = await fetch('data/' 
-            + feature.properties.borough + '/' 
-            + feature.properties.tract + '/' 
-            + feature.properties.block + '.json');
-    } else if ('tract' in feature.properties) {
-        f = await fetch('data/' 
-            + feature.properties.borough + '/' 
-            + feature.properties.tract + '/blocks.json');
-    } else if ('borough' in feature.properties) {
-        f = await fetch('data/'
-            + feature.properties.borough + '/tracts.json');
+    
+    switch (feature.properties.type) {
+        case 'borough':
+            f = await fetch('data/'
+                + feature.properties.borough + '/tracts.json');
+            break;
+        case 'tract':
+            f = await fetch('data/' 
+                + feature.properties.borough + '/' 
+                + feature.properties.tract + '/blocks.json');
+            break;
+        case 'block':
+            f = await fetch('data/' 
+                + feature.properties.borough + '/' 
+                + feature.properties.tract + '/' 
+                + feature.properties.block + '.json');
+            break;
+        default:
+            return; //maybe show signs?
     }
     
     let response = await f.json();
-
+    
+    const split_type = {borough: 'tract', tract: 'block', block: 'order'};
+    
     for (let rowid in response) {
         if (response[rowid]['geom']) {
             let new_feature = L.GeoJSON.asFeature(response[rowid]['geom']);
-            new_feature.properties.borough = feature.properties.borough;
-            new_feature.properties.tract = feature.properties.tract || rowid;
-            if (feature.properties.tract) {
-                new_feature.properties.block = feature.properties.block || rowid;
+            new_feature.properties.type = split_type[feature.properties.type];
+            switch (new_feature.properties.type) {
+                case 'order':
+                    new_feature.properties.order_no = rowid;
+                    new_feature.properties.main_st = response[rowid]['main_st'];
+                    new_feature.properties.from_st = response[rowid]['from_st'];
+                    new_feature.properties.to_st = response[rowid]['to_st'];
+                    new_feature.properties.signs = response[rowid]['signs'];
+                case 'block':
+                    new_feature.properties.block = feature.properties.block || rowid;
+                case 'tract':
+                    new_feature.properties.tract = feature.properties.tract || rowid;
+                default:
+                    new_feature.properties.borough = feature.properties.borough;
+                    new_feature.properties.parking = response[rowid]['parking'];
             }
-            if (feature.properties.block) {
-                new_feature.properties.order_no = rowid;
-                new_feature.properties.main_st = response[rowid]['main_st'];
-                new_feature.properties.from_st = response[rowid]['from_st'];
-                new_feature.properties.to_st = response[rowid]['to_st'];
-                new_feature.properties.signs = response[rowid]['signs'];
-            }
-            
-            new_feature.properties.parking = response[rowid]['parking'];
             features_layer.addData(new_feature);
             
             if (selection.has(feature)) {
@@ -56,11 +65,13 @@ async function split(feature, layer) {
             //features missing geometry
         }
     }
+    
     if (selection.has(feature)) {
         selection.delete(feature);
     }
     
     layer.remove();
+    features_layer.resetStyle();
 }
 
 let selection = new Set();
@@ -68,13 +79,12 @@ let selection = new Set();
 async function select(feature, layer) {
     if (selection.has(feature)) {
         selection.delete(feature);
-        layer.setStyle({color: "green"});
     } else {
         selection.add(feature);
-        layer.setStyle({color: "red"});
     }
 
     calculate_parking();
+    features_layer.resetStyle();
 }
 
 var data = {
@@ -93,27 +103,15 @@ let periods = {
 };
 
 let types = {
-    'O':  "No Stopping",
-    'S':  "No Standing",
-    'P':  "No Parking",
-    'A':  "Authorized Vehicles",
-    'MC': "Metered Commerical Parking",
-    'C':  "Commerical Vehicles",
-    'M':  "Metered Parking",
-    'L':  "Time Limited Parking",
-    '':   "Free Parking"
-};
-
-let colors = {
-    'P': "#a88",
-    'S': "#c88",
-    'O': "#f88",
-    'A': "#f8f",
-    'MC': "#88f",
-    'C': "#88a",
-    'M': "#888",
-    'L': "#8a8",
-    ''  : "#8f8"
+    'O':  {label: "No Stopping",                color: "#f88"},
+    'S':  {label: "No Standing",                color: "#c88"},
+    'P':  {label: "No Parking",                 color: "#a88"},
+    'A':  {label: "Authorized Vehicles",        color: "#f8f"},
+    'MC': {label: "Metered Commerical Parking", color: "#88f"},
+    'C':  {label: "Commerical Vehicles",        color: "#88a"},
+    'M':  {label: "Metered Parking",            color: "#888"},
+    'L':  {label: "Time Limited Parking",       color: "#8a8"},
+    '':   {label: "Free Parking",               color: "#8f8"}
 };
 
 function reset_data() {
@@ -132,10 +130,10 @@ function reset_data() {
 
     for (let type in types) {
         data.datasets.push({
-            backgroundColor: colors[type],
+            backgroundColor: types[type].color,
             categoryPercentage: 1.0,
             barPercentage: 1.0,
-            label: types[type],
+            label: types[type].label,
             data: Array.from(empty)
         });
     }
@@ -204,9 +202,21 @@ async function load() {
     let boroughs = await f.json();
     for (let borough in boroughs) {
         let feature = L.GeoJSON.asFeature(boroughs[borough]['geom']);
+        feature.properties.type = 'borough';
         feature.properties.borough = borough;
+        feature.properties.name = boroughs[borough]['name'];
         feature.properties.parking = boroughs[borough]['parking'];
         features_layer.addData(feature);
+    }
+}
+
+function doTool(e) {
+    let layer = e.target;
+    let feature = layer.feature;
+    if (tools.getContainer().elements['tool'].value == 'select') {
+        select(feature, layer);
+    } else {
+        split(feature, layer);
     }
 }
 
@@ -214,14 +224,16 @@ async function load() {
 var features_layer = L.geoJSON(
     [],
     {
-        style: {color: "green"},
+        style: (feature) => {
+            if (selection.has(feature)) {
+                return {color: "red"};
+            } else {
+                return {color: "green"};
+            }
+        },
         onEachFeature: (feature, layer) => {
-            layer.on('click', () => {
-                if (tools.getContainer().elements['tool'].value == 'select') {
-                    select(feature, layer);
-                } else {
-                    split(feature, layer);
-                }
+            layer.on({
+                'click': doTool,
             });
         }
     }
