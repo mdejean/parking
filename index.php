@@ -725,7 +725,7 @@ group by cb.borocode, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
     }
     
     foreach ($boro_parking as $row) {
-        array_set($row['length'], $all, $row['borocode'], 'parking', $row['day'], $row['period'], $row['type']);
+        array_set((int)$row['length'], $all, $row['borocode'], 'parking', $row['day'], $row['period'], $row['type']);
     }
     
     @mkdir("data", 0777, true);
@@ -791,7 +791,7 @@ if (cmd('tracts')) {
         $tp = $tract_parking->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($tp as $row) {
-            array_set($row['length'], $all, $row['ct2010'], 'parking', $row['day'], $row['period'], $row['type']);
+            array_set((int)$row['length'], $all, $row['ct2010'], 'parking', $row['day'], $row['period'], $row['type']);
         }
         
         @mkdir("data/$boro",0777, true);
@@ -815,7 +815,7 @@ if (cmd('tracts')) {
             $block_parking->execute(['boro' => $boro, 'ct2010' => $tract]);
             $result = $block_parking->fetchAll(PDO::FETCH_ASSOC);
             foreach ($result as $row) {
-                array_set($row['length'], $all, $row['cb2010'], 'parking', $row['day'], $row['period'], $row['type']);
+                array_set((int)$row['length'], $all, $row['cb2010'], 'parking', $row['day'], $row['period'], $row['type']);
             }
             @mkdir("data/$boro/$tract",0777, true);
             file_put_contents("data/$boro/$tract/blocks.json", json_encode($all));
@@ -932,7 +932,7 @@ if (cmd('blocks')) {
         }
         
         foreach ($parking as $p) {
-            array_set($p['length'], $all, $p['order_no'], 'parking', $p['day'], $p['period'], $p['type']);
+            array_set((int)$p['length'], $all, $p['order_no'], 'parking', $p['day'], $p['period'], $p['type']);
         }
         
         file_put_contents("data/$borough/$tract/$block.json", json_encode($all));

@@ -186,7 +186,7 @@ async function calculate_parking() {
                     for (const ds of data.datasets) {
                         if (ds.label == types[type]) {
                             ds.data[data.labels.indexOf(days[day] + " " + periods[period])]
-                                += (Number.parseInt(f.properties.parking[day][period][type]) || 0);
+                                += (f.properties.parking[day][period][type] || 0);
                         }
                     }
                 }
