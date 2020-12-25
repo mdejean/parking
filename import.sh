@@ -7,6 +7,7 @@ psql postgres -c "drop database if exists parking;"
 createdb parking 
 
 psql -v ON_ERROR_STOP=1 -f postgis.sql parking
+psql -v ON_ERROR_STOP=1 -f MultiLineLocatePoint.sql parking
 
 csvsql -e windows-1252 --db "postgresql:///parking" --tables location --insert --overwrite --chunk-size 5000 import/locations.csv
 csvsql -e windows-1252 --db "postgresql:///parking" --tables import_sign --insert --overwrite --chunk-size 5000 import/signs.csv
@@ -19,6 +20,8 @@ shp2pgsql -I -D -s 4326 -m columns.txt import/Parking_Regulation_Shapefile/Parki
 shp2pgsql -I -D -s 2263 import/NYC_Hydrants/NYCDEP_Hydrants.shp hydrant | psql -v ON_ERROR_STOP=1 parking
 
 psql -v ON_ERROR_STOP=1 -f blockface_geom.sql parking
+
+psql -v ON_ERROR_STOP=1 -f blockface_hydrant.sql parking
 
 psql -v ON_ERROR_STOP=1 -f sign.sql parking
 psql -v ON_ERROR_STOP=1 -f supersedes.sql parking
