@@ -92,6 +92,8 @@ var data = {
     datasets: [],
 };
 
+let boroughs = [null, "Manhattan", "The Bronx", "Brooklyn", "Queens", "Staten Island"];
+
 let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 let periods = {
@@ -197,6 +199,39 @@ async function calculate_parking() {
     chart.update();
 }
 
+function parking_stat(p) {
+    
+    let r = {
+        min: Infinity,
+        min_day: null,
+        min_period: null,
+        max: 0,
+        max_day: null,
+        max_period: null
+    };
+    
+    if (Object.keys(p).length == 0) return r;
+    
+    for (let day in days) {
+        for (let period in periods) {
+            let val = p[day][period][''] || 0;
+            if (val < r.min) {
+                r.min = val;
+                r.min_day = day;
+                r.min_period = period;
+            }
+            
+            if (val > r.max) {
+                r.max = val;
+                r.max_day = day;
+                r.max_period = period;
+            }
+        }
+    }
+    
+    return r;
+}
+
 async function load() {
     let f = await fetch('data/boroughs.json');
     let boroughs = await f.json();
@@ -220,6 +255,57 @@ function doTool(e) {
     }
 }
 
+function updateTooltip(e) {
+    let layer = e.target;
+    let feature = layer.feature;
+    
+    let stat = parking_stat(feature.properties.parking);
+    
+    let tooltip_text = "";
+    if (feature.properties.type == 'order') {
+        if (feature.properties.order_no) {
+            tooltip_text += "<h4>#" + feature.properties.order_no 
+                + "</h4><div>" + feature.properties.sos 
+                + " side of " + feature.properties.main_st 
+                + "<br>(" + feature.properties.from_st 
+                + " - " + feature.properties.to_st + ")</div>"
+                + "<div>" + boroughs[feature.properties.borough] 
+                + " tract " + feature.properties.tract 
+                + " block " + feature.properties.block 
+                + "</div>";
+        } else {
+            tooltip_text += "<h4>Not geocoded</h4>"
+                + "<div>Approximately " + feature.properties.length + " ft</div>";
+        }
+    } else if (feature.properties.type == 'block') {
+        tooltip_text +=
+            "<h4>" + boroughs[feature.properties.borough] 
+            + " tract " + feature.properties.tract 
+            + " block " + feature.properties.block 
+            + "</h4>";
+    } else if (feature.properties.type == 'tract') {
+        tooltip_text +=
+            "<h4>" + boroughs[feature.properties.borough] 
+            + " tract " + feature.properties.tract 
+            + "</h4>";
+    } else if (feature.properties.type == 'borough') {
+        tooltip_text +=
+            "<h4>" + boroughs[feature.properties.borough] 
+            + "</h4>";
+    }
+    
+    tooltip_text += "<div>" + stat.min + " (" + days[stat.min_day] + " " + periods[stat.min_period] 
+    + ") to " + stat.max + " (" + days[stat.max_day] + " " + periods[stat.max_period] + ")</div>"; 
+    
+    layer.bindTooltip(tooltip_text);
+    layer.openTooltip();
+}
+
+function closeTooltip(e) {
+    let layer = e.target;
+    let feature = layer.feature;
+    layer.unbindTooltip();
+}
 
 var features_layer = L.geoJSON(
     [],
@@ -234,6 +320,8 @@ var features_layer = L.geoJSON(
         onEachFeature: (feature, layer) => {
             layer.on({
                 'click': doTool,
+                'mouseover': updateTooltip,
+                'mouseout': closeTooltip
             });
         }
     }

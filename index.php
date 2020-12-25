@@ -920,6 +920,7 @@ if (cmd('blocks')) {
                     'main_st' => $g['main_st'],
                     'from_st' => $g['from_st'],
                     'to_st' => $g['to_st'],
+                    'sos' => $g['sos'],
                     'parking' => [],
                 ];
             }
