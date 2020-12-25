@@ -704,7 +704,8 @@ if (cmd('boroughs')) {
         p.day,
         p.period,
         p.type,
-        sum(p.length) length
+        sum(p.length) length,
+        sum(p.spaces) spaces
 from parking p
 join order_segment os on os.order_no = p.order_no
 left join blockface_geom bg on bg.blockface = os.blockface
@@ -725,7 +726,8 @@ group by cb.borocode, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
     }
     
     foreach ($boro_parking as $row) {
-        array_set((int)$row['length'], $all, $row['borocode'], 'parking', $row['day'], $row['period'], $row['type']);
+        array_set((int)$row['length'], $all, $row['borocode'], 'parking_length', $row['day'], $row['period'], $row['type']);
+        array_set((int)$row['spaces'], $all, $row['borocode'], 'parking_spaces', $row['day'], $row['period'], $row['type']);
     }
     
     @mkdir("data", 0777, true);
@@ -740,7 +742,8 @@ if (cmd('tracts')) {
                 p.day,
                 p.period,
                 p.type,
-                sum(p.length) length
+                sum(p.length) length,
+                sum(p.spaces) spaces
         from parking p
         join order_segment os on os.order_no = p.order_no
         left join blockface_geom bg on bg.blockface = os.blockface
@@ -765,7 +768,8 @@ if (cmd('tracts')) {
                 p.day,
                 p.period,
                 p.type,
-                sum(p.length) length
+                sum(p.length) length,
+                sum(p.spaces) spaces
         from parking p
         join order_segment os on os.order_no = p.order_no
         left join blockface_geom bg on bg.blockface = os.blockface
@@ -791,7 +795,8 @@ if (cmd('tracts')) {
         $tp = $tract_parking->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($tp as $row) {
-            array_set((int)$row['length'], $all, $row['ct2010'], 'parking', $row['day'], $row['period'], $row['type']);
+            array_set((int)$row['length'], $all, $row['ct2010'], 'parking_length', $row['day'], $row['period'], $row['type']);
+            array_set((int)$row['spaces'], $all, $row['ct2010'], 'parking_spaces', $row['day'], $row['period'], $row['type']);
         }
         
         @mkdir("data/$boro",0777, true);
@@ -815,7 +820,8 @@ if (cmd('tracts')) {
             $block_parking->execute(['boro' => $boro, 'ct2010' => $tract]);
             $result = $block_parking->fetchAll(PDO::FETCH_ASSOC);
             foreach ($result as $row) {
-                array_set((int)$row['length'], $all, $row['cb2010'], 'parking', $row['day'], $row['period'], $row['type']);
+                array_set((int)$row['length'], $all, $row['cb2010'], 'parking_length', $row['day'], $row['period'], $row['type']);
+                array_set((int)$row['spaces'], $all, $row['cb2010'], 'parking_spaces', $row['day'], $row['period'], $row['type']);
             }
             @mkdir("data/$boro/$tract",0777, true);
             file_put_contents("data/$boro/$tract/blocks.json", json_encode($all));
@@ -872,7 +878,8 @@ if (cmd('blocks')) {
             p.day,
             p.period,
             p.type,
-            sum(p.length) length
+            sum(p.length) length,
+            sum(p.spaces) spaces
         from order_segment os
         left join (select * from blockface_geom natural join b) bg on bg.blockface = os.blockface
         join parking p on p.order_no = os.order_no
@@ -933,7 +940,8 @@ if (cmd('blocks')) {
         }
         
         foreach ($parking as $p) {
-            array_set((int)$p['length'], $all, $p['order_no'], 'parking', $p['day'], $p['period'], $p['type']);
+            array_set((int)$p['length'], $all, $p['order_no'], 'parking_length', $p['day'], $p['period'], $p['type']);
+            array_set((int)$p['spaces'], $all, $p['order_no'], 'parking_spaces', $p['day'], $p['period'], $p['type']);
         }
         
         file_put_contents("data/$borough/$tract/$block.json", json_encode($all));
