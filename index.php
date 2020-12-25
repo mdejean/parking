@@ -937,8 +937,8 @@ if (cmd('blocks')) {
         
         file_put_contents("data/$borough/$tract/$block.json", json_encode($all));
 
-        echo "$block_count/" . count($census_blocks) . " blocks\r";
         $block_count++;
+        echo "$block_count/" . count($census_blocks) . " blocks\r";
     }
     echo "\n";
     $conn->commit();
