@@ -1,0 +1,159 @@
+<!doctype html>
+<html>
+<head>
+    <title>Parking Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@latest/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/proj4@latest/dist/proj4-src.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@latest/dist/Chart.min.js"></script>
+    <script src="html_tooltip.js"></script>
+    <link rel="stylesheet" href="html_tooltip.css">
+    <script src="json_table.js"></script>
+    <style type='text/css'>
+html, body {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font: menu;
+    line-height: 1;
+    vertical-align: top;
+}
+
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video, button {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+#map {
+    flex: 1;
+}
+
+.tool {
+    border: 1px solid black;
+    padding-right: 1em;
+}
+
+#tools > input {
+    display: none;
+}
+
+#tools > input + label {
+    background-color: white;
+}
+
+#tools > input:checked + label {
+    background-color: lightblue;
+}
+
+#tools > label[for=select]::after {
+    content: "Select";
+}
+
+#tools > label[for=split]::after {
+    content: "Split";
+}
+
+#tools > label[for=show_spaces]::after {
+    content: "Show # spaces";
+}
+
+#tools label input {
+    margin: 0 inherit;
+}
+
+#tools {
+    padding: 6px 8px;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+
+#tools > * {
+    display: block;
+}
+
+.tiles {
+    filter: saturate(70%);
+}
+
+
+#errors > input {
+    display: none;
+}
+
+#errors > label {
+    display: inline-block;
+    margin: 2px;
+}
+
+#errors > label::after {
+    content: "Show/Hide";
+    padding: 2px;
+    margin: 1px;
+    border: 1px solid black;
+    background-color: #ccc;
+}
+
+#errors > input + table {
+    display: none;
+}
+
+#errors > input:checked + table {
+    display: block;
+    max-height: 30vh;
+    overflow-y: scroll;
+    overflow-x: scroll;
+}
+
+#errors button {
+    margin: 1px;
+    padding: 1px;
+    border: 1px solid black;
+    background-color: #ccc;
+}
+
+#errors tr:nth-child(even) {
+    background-color: #ccc;
+}
+
+td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#me {
+    float: right;
+}
+#bottom {
+    flex: 0;
+    padding: 4px 1em 3px 1em;
+}
+    </style>
+</head>
+<body>
+ <h1>Parking Map</h1>
+ <div id="map"></div>
+ <div id=bottom>
+     <div id="me">There are still many bugs and unimplemented features, and roughly 15% of streets need to be geocoded <a href="https://marcel.dejean.nyc">marcel.dejean.nyc</a></div>
+     <div id="chart"><canvas id="chart_canvas" height=40></canvas></div>
+     <div id="errors"></div>
+ </div>
+ <script src="map.js">
+</script>
+</body>
+</html>
