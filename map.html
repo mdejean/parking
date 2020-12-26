@@ -32,7 +32,7 @@ table, caption, tbody, tfoot, thead, tr, th, td,
 article, aside, canvas, details, embed,
 figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
+time, mark, audio, video, button {
     margin: 0;
     padding: 0;
     border: 0;
@@ -114,6 +114,26 @@ time, mark, audio, video {
 
 #errors > input:checked + table {
     display: block;
+    max-height: 30vh;
+    overflow-y: scroll;
+    overflow-x: scroll;
+}
+
+#errors button {
+    margin: 1px;
+    padding: 1px;
+    border: 1px solid black;
+    background-color: #ccc;
+}
+
+#errors tr:nth-child(even) {
+    background-color: #ccc;
+}
+
+td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #me {
@@ -126,10 +146,10 @@ time, mark, audio, video {
     </style>
 </head>
 <body>
- <h1>Parking Signs</h1>
+ <h1>Parking Map</h1>
  <div id="map"></div>
  <div id=bottom>
-     <div id="me"><a href="https://marcel.dejean.nyc">marcel.dejean.nyc</a></div>
+     <div id="me">There are still many bugs and unimplemented features, and roughly 15% of streets need to be geocoded <a href="https://marcel.dejean.nyc">marcel.dejean.nyc</a></div>
      <div id="chart"><canvas id="chart_canvas" height=40></canvas></div>
      <div id="errors"></div>
  </div>

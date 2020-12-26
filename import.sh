@@ -36,7 +36,6 @@ psql -v ON_ERROR_STOP=1 -f parking.sql parking
 php -f index.php parking
 psql -v ON_ERROR_STOP=1 -f spaces.sql parking
 
-
 php -f index.php boroughs
 php -f index.php tracts
 php -f index.php blocks

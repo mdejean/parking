@@ -157,7 +157,7 @@ function select_invalid(e) {
 }
 
 async function show_invalid() {
-    document.getElementById('errors').innerHTML = 'Orders not geocoded <label for=show_invalid></label><br><input id=show_invalid type=checkbox>';
+    document.getElementById('errors').innerHTML = 'Locations not geocoded <label for=show_invalid></label><br><input id=show_invalid type=checkbox>';
     document.getElementById('errors').appendChild(
         buildHtmlTable(
             ungeocoded.map((f) => f.properties),
@@ -175,11 +175,11 @@ async function show_invalid() {
                 },
                 parking_length: (p) => {
                     let s = parking_stat(p);
-                    return document.createTextNode("" + s.min + " (" + days[s.min_day] + " " + s.min_period + ") - " + s.max + " (" + days[s.max_day] + " " + s.max_period + ") ft");
+                    return document.createTextNode("" + s.min +  " - " + s.max + " ft");
                 },
                 parking_spaces: (p) => {
                     let s = parking_stat(p);
-                    return document.createTextNode("" + s.min + " (" + days[s.min_day] + " " + s.min_period + ") - " + s.max + " (" + days[s.max_day] + " " + s.max_period + ") spaces");
+                    return document.createTextNode("" + s.min +  " - " + s.max + " spaces");
                 },
                 signs: (s) => document.createTextNode(s.length + " signs")
             })
@@ -352,7 +352,7 @@ function updateTooltip(e) {
                 + " block " + feature.properties.block 
                 + "</div>";
         } else {
-            tooltip_text += "<h4>Not geocoded</h4>"
+            tooltip_text += "<h4>No data</h4>"
                 + "<div>Approximately " + feature.properties.length + " ft</div>";
         }
     } else if (feature.properties.type == 'block') {
