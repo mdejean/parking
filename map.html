@@ -42,25 +42,48 @@ time, mark, audio, video {
     flex: 1;
 }
 
-#split::after {
-    content: "Split";
-}
-
-#split, #select {
+.tool {
     border: 1px solid black;
+    padding-right: 1em;
 }
 
-#select::after {
+#tools > input {
+    display: none;
+}
+
+#tools > input + label {
+    background-color: white;
+}
+
+#tools > input:checked + label {
+    background-color: lightblue;
+}
+
+#tools > label[for=select]::after {
     content: "Select";
 }
 
-.line {
-    width: 5em;
-    height: 0;
-    margin-right: 5px;
-    vertical-align: middle;
-    border: 2pt solid;
-    display: inline-block;
+#tools > label[for=split]::after {
+    content: "Split";
+}
+
+#tools > label[for=show_spaces]::after {
+    content: "Show # spaces";
+}
+
+#tools label input {
+    margin: 0 inherit;
+}
+
+#tools {
+    padding: 6px 8px;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+
+#tools > * {
+    display: block;
 }
 
 .tiles {

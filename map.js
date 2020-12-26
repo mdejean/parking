@@ -392,25 +392,32 @@ map.setView([40.7358,-73.9243], 10);
 var toolbox = L.control({position: 'topright'});
 
 function tool(id) {
+    let parent = new DocumentFragment();
     let r = document.createElement('input');
     r.type = 'radio';
     r.name = 'tool';
     r.value = id;
+    r.id = id;
     let l = document.createElement('label');
-    l.id = id;
-    l.appendChild(r);
-    return l;
+    l.className = 'tool';
+    l.htmlFor = id;
+    parent.appendChild(r);
+    parent.appendChild(l);
+    return parent;
 }
 
 function checkbox(id, checked) {
+    let parent = new DocumentFragment();
     let r = document.createElement('input');
     r.type = 'checkbox';
     r.name = id;
+    r.id = id;
     r.checked = checked || false;
     let l = document.createElement('label');
-    l.id = id;
-    l.appendChild(r);
-    return l;
+    l.htmlFor = id;
+    parent.appendChild(r);
+    parent.appendChild(l);
+    return parent;
 }
 
 toolbox.onAdd = (map) => {
