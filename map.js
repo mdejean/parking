@@ -127,9 +127,58 @@ var chart = new Chart(chart_ctx, {
     }
 });
 
-let ungeocoded = new Set();
+let ungeocoded = [];
 
 let selection = new Set();
+
+function select_invalid(e) {
+    let order_no = e.target.value;
+    
+    for (let f of ungeocoded) {
+        if (f.properties.order_no == order_no) {
+            if (selection.has(f)) {
+                e.target.innerHTML = 'Select';
+                selection.delete(f);
+            } else {
+                selection.add(f);
+                e.target.innerHTML = 'Deselect';
+            }
+            break;
+        }
+    }
+    
+    calculate_parking();
+}
+
+async function show_invalid() {
+    document.getElementById('errors').innerHTML = 'Orders not geocoded <label for=show_invalid></label><br><input id=show_invalid type=checkbox>';
+    document.getElementById('errors').appendChild(
+        buildHtmlTable(
+            ungeocoded.map((f) => f.properties),
+            {
+                borough: (b) => document.createTextNode(boroughs[b]),
+                order_no: (order_no) => {
+                    let b = document.createElement('button');
+                    b.innerHTML = 'Select';
+                    b.value = order_no;
+                    b.addEventListener('click', select_invalid);
+                    let div = document.createElement('div');
+                    div.appendChild(b);
+                    div.appendChild(document.createTextNode(order_no));
+                    return div;
+                },
+                parking_length: (p) => {
+                    let s = parking_stat(p);
+                    return document.createTextNode("" + s.min + " (" + days[s.min_day] + " " + s.min_period + ") - " + s.max + " (" + days[s.max_day] + " " + s.max_period + ")");
+                },
+                parking_spaces: (p) => {
+                    let s = parking_stat(p);
+                    return document.createTextNode("" + s.min + " (" + days[s.min_day] + " " + s.min_period + ") - " + s.max + " (" + days[s.max_day] + " " + s.max_period + ")");
+                },
+                signs: (s) => document.createTextNode(s.length + " signs")
+            })
+        );
+}
 
 async function select(feature, layer) {
     if (selection.has(feature)) {
@@ -170,7 +219,7 @@ async function split(feature, layer) {
     const split_type = {borough: 'tract', tract: 'block', block: 'order'};
     
     for (let rowid in response) {
-            let new_feature = L.GeoJSON.asFeature(response[rowid]['geom']);
+            let new_feature = L.GeoJSON.asFeature(response[rowid]['geom'] || {});
             new_feature.properties.type = split_type[feature.properties.type];
             switch (new_feature.properties.type) {
                 case 'order':
@@ -192,7 +241,7 @@ async function split(feature, layer) {
                 features_layer.addData(new_feature);
             } else {
                 //features missing geometry
-                ungeocoded.add(new_feature);
+                ungeocoded.push(new_feature);
             }
             
             if (selection.has(feature)) {
@@ -206,6 +255,7 @@ async function split(feature, layer) {
     
     layer.remove();
     features_layer.resetStyle();
+    show_invalid();
 }
 
 async function load() {
@@ -242,7 +292,7 @@ function parking_stat(p) {
         max_period: null
     };
     
-    if (Object.keys(p).length == 0) return r;
+    if (!p || Object.keys(p).length == 0) return r;
     
     for (let day in days) {
         for (let period in periods) {

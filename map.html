@@ -67,6 +67,32 @@ time, mark, audio, video {
     filter: saturate(70%);
 }
 
+
+#errors > input {
+    display: none;
+}
+
+#errors > label {
+    display: inline-block;
+    margin: 2px;
+}
+
+#errors > label::after {
+    content: "Show/Hide";
+    padding: 2px;
+    margin: 1px;
+    border: 1px solid black;
+    background-color: #ccc;
+}
+
+#errors > input + table {
+    display: none;
+}
+
+#errors > input:checked + table {
+    display: block;
+}
+
 #me {
     float: right;
 }
@@ -82,6 +108,7 @@ time, mark, audio, video {
  <div id=bottom>
      <div id="me"><a href="https://marcel.dejean.nyc">marcel.dejean.nyc</a></div>
      <div id="chart"><canvas id="chart_canvas" height=40></canvas></div>
+     <div id="errors"></div>
  </div>
  <script src="map.js">
 </script>
