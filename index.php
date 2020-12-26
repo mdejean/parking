@@ -953,6 +953,53 @@ if (cmd('blocks')) {
     $conn->commit();
 }
 
+if (cmd('ungeocoded')) {
+    $locations = $conn->query('
+        select
+            l.order_no,
+            l.main_st,
+            l.from_st,
+            l.to_st,
+            l.sos,
+            io.error
+        from location l
+        left join invalid_order io on l.order_no = io.order_no
+        left join order_segment os on l.order_no = os.order_no
+        left join blockface_geom bg on bg.blockface = os.blockface
+        where l.order_no in (select order_no from parking group by order_no)
+        and bg.bctcb2010 is null and os.bctcb2010 is null
+    ')->fetchAll(PDO::FETCH_ASSOC);
+    
+    $parking = $conn->query('
+        select
+            p.order_no,
+            p.day,
+            p.period,
+            p.type,
+            sum(p.length) length,
+            sum(p.spaces) spaces
+        from parking p
+        left join order_segment os on p.order_no = os.order_no
+        left join blockface_geom bg on bg.blockface = os.blockface
+        where bg.bctcb2010 is null and os.bctcb2010 is null
+        group by p.order_no, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
+    
+    $all = [];
+    
+    foreach ($locations as $l) {
+        $order_no = $l['order_no'];
+        unset($l['order_no']);
+        $all[$order_no] = $l;
+    }
+    
+    foreach ($parking as $p) {
+        array_set((int)$p['length'], $all, $p['order_no'], 'parking_length', $p['day'], $p['period'], $p['type']);
+        array_set((int)$p['spaces'], $all, $p['order_no'], 'parking_spaces', $p['day'], $p['period'], $p['type']);
+    }
+    
+    file_put_contents("data/ungeocoded.json", json_encode($all));
+}
+
 if (cmd('parking')) {
     $orders = $conn->query('select order_no from sign group by order_no')->fetchAll(PDO::FETCH_COLUMN);
     

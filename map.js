@@ -276,6 +276,18 @@ async function load() {
         feature.properties.parking_spaces = boroughs[borough]['parking_spaces'];
         features_layer.addData(feature);
     }
+    
+    f = await fetch('data/ungeocoded.json');
+    let response = await f.json();
+    for (let rowid in response) {
+            let new_feature = L.GeoJSON.asFeature({});
+            new_feature.properties.order_no = rowid;
+            for (let k of Object.keys(response[rowid])) {
+                new_feature.properties[k] = response[rowid][k];
+            }
+            ungeocoded.push(new_feature);
+    }
+    show_invalid();
 }
 
 function doTool(e) {
