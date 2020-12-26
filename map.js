@@ -86,6 +86,11 @@ async function calculate_parking() {
         }
     }
     chart.data = data;
+    chart.options.scales.xAxes[0].scaleLabel = {
+        display: true,
+        labelString: (show_spaces ? "parking spaces" : "feet of curb"),
+        padding: 0
+    };
     chart.update();
 }
 
@@ -97,6 +102,7 @@ var chart = new Chart(chart_ctx, {
     options: {
         scales: {
             xAxes: [{
+                offset: false,
                 stacked: true
             }],
             yAxes: [
@@ -169,11 +175,11 @@ async function show_invalid() {
                 },
                 parking_length: (p) => {
                     let s = parking_stat(p);
-                    return document.createTextNode("" + s.min + " (" + days[s.min_day] + " " + s.min_period + ") - " + s.max + " (" + days[s.max_day] + " " + s.max_period + ")");
+                    return document.createTextNode("" + s.min + " (" + days[s.min_day] + " " + s.min_period + ") - " + s.max + " (" + days[s.max_day] + " " + s.max_period + ") ft");
                 },
                 parking_spaces: (p) => {
                     let s = parking_stat(p);
-                    return document.createTextNode("" + s.min + " (" + days[s.min_day] + " " + s.min_period + ") - " + s.max + " (" + days[s.max_day] + " " + s.max_period + ")");
+                    return document.createTextNode("" + s.min + " (" + days[s.min_day] + " " + s.min_period + ") - " + s.max + " (" + days[s.max_day] + " " + s.max_period + ") spaces");
                 },
                 signs: (s) => document.createTextNode(s.length + " signs")
             })
@@ -240,8 +246,8 @@ async function split(feature, layer) {
             if (response[rowid]['geom']) {
                 features_layer.addData(new_feature);
             } else {
-                //features missing geometry
-                ungeocoded.push(new_feature);
+                //add features missing geometry to the beginning of the table
+                ungeocoded.unshift(new_feature);
             }
             
             if (selection.has(feature)) {
@@ -355,7 +361,7 @@ function updateTooltip(e) {
     }
     
     tooltip_text += "<div>" + stat.min + " (" + days[stat.min_day] + " " + periods[stat.min_period] 
-    + ") to " + stat.max + " (" + days[stat.max_day] + " " + periods[stat.max_period] + ")</div>"; 
+    + ") to " + stat.max + " (" + days[stat.max_day] + " " + periods[stat.max_period] + ") " + (show_spaces ? "spaces" : "feet") + "</div>"; 
     
     layer.bindTooltip(tooltip_text);
     layer.openTooltip();
@@ -426,7 +432,7 @@ toolbox.onAdd = (map) => {
     form.appendChild(tool('select'));
     form.appendChild(tool('split'));
     form.appendChild(checkbox('show_spaces', true));
-    
+    form.elements['show_spaces'].addEventListener('click', calculate_parking);
     return form;
 };
 
