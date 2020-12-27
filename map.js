@@ -332,6 +332,18 @@ function parking_stat(p) {
     return r;
 }
 
+function intersectBounds(b1, b2) {
+    return L.latLngBounds([
+        [
+            Math.max(b1.getSouth(), b2.getSouth()),
+            Math.max(b1.getWest(), b2.getWest())
+        ], [
+            Math.min(b1.getNorth(), b2.getNorth()),
+            Math.min(b1.getEast(), b2.getEast())
+        ]
+    ]);
+}
+
 function updateTooltip(e) {
     let layer = e.target;
     let feature = layer.feature;
@@ -376,7 +388,25 @@ function updateTooltip(e) {
     + ") to " + stat.max + " (" + days[stat.max_day] + " " + periods[stat.max_period] + ") " + (show_spaces ? "spaces" : "feet") + "</div>"; 
     
     layer.bindTooltip(tooltip_text);
-    layer.openTooltip();
+    
+    //leaflet's built in layer.getCenter() ignores all but the first line/polygon in a multi-x
+    // so use the center of the bounds - centroid would be better but this is good enough
+    let center = intersectBounds(
+            layer.getBounds(), 
+            map.getBounds()
+        ).getCenter();
+    
+    //for orders (lines) pick the closest point on the line so the tooltip is pointing to the object
+    if (feature.properties.type == 'order') {
+        center = map.layerPointToLatLng(
+            layer.closestLayerPoint(
+                map.latLngToLayerPoint(
+                    center
+                )
+            ));
+    }
+    
+    layer.openTooltip(center);
 }
 
 function closeTooltip(e) {
