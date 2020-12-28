@@ -859,17 +859,20 @@ if (cmd('blocks')) {
     $get_geometry = $conn->prepare('
         with b (bctcb2010) as (select :bctcb2010)
         select
-            os.order_no,
+            coalesce(os.order_no, bg.blockface) order_no,
             l.main_st,
             l.from_st,
             l.to_st,
             l.sos,
-            ST_AsGeoJSON(ST_Transform(ST_Union(geom), 4326), 6, 0) geojson
+            max(io.error) error,
+            ST_AsGeoJSON(ST_Transform(ST_Union(geom), 4326), 6, 0) geom,
+            round(ST_Length(ST_Union(geom))) length
         from (select * from blockface_geom natural join b) bg
         full outer join order_segment os on bg.blockface = os.blockface
         left join location l on l.order_no = os.order_no
+        left join invalid_order io on l.order_no = io.order_no
         join b on coalesce(bg.bctcb2010, os.bctcb2010) = b.bctcb2010
-        group by os.order_no, l.main_st, l.from_st, l.to_st, l.sos
+        group by coalesce(os.order_no, bg.blockface), l.main_st, l.from_st, l.to_st, l.sos
     ');
     $get_parking = $conn->prepare('
         with b (bctcb2010) as (select :bctcb2010)
@@ -920,17 +923,10 @@ if (cmd('blocks')) {
         
         foreach ($geometry as $g) {
             $order = $g['order_no'];
-            if (!isset( $all[$order] )) {
-                $all[$order] = [
-                    'signs' => [],
-                    'geom' => json_decode($g['geojson']),
-                    'main_st' => $g['main_st'],
-                    'from_st' => $g['from_st'],
-                    'to_st' => $g['to_st'],
-                    'sos' => $g['sos'],
-                    'parking' => [],
-                ];
-            }
+            unset($g['order_no']);
+            $g['geom'] = json_decode($g['geom']);
+            $g['signs'] = [];
+            $all[$order] = $g;
         }
         
         foreach ($signs as $sign) {
