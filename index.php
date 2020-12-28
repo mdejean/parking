@@ -883,7 +883,7 @@ if (cmd('blocks')) {
         from order_segment os
         left join (select * from blockface_geom natural join b) bg on bg.blockface = os.blockface
         join parking p on p.order_no = os.order_no
-        where coalesce(bg.bctcb2010, os.bctcb2010) = :bctcb2010
+        join b on b.bctcb2010 = coalesce(bg.bctcb2010, os.bctcb2010)
         group by os.order_no, p.day, p.period, p.type');
     
     $block_count = 0;
