@@ -12,64 +12,112 @@ CREATE TABLE blockface_geom
 
 SELECT AddGeometryColumn ('public','blockface_geom','geom',2263,'MULTILINESTRING',2);
 
+
+with ss as (
+        select
+            streetcode,
+            lblockface, rblockface,
+            lboro, rboro,
+            lboro || LPAD(lct2010, 4, '0') || LPAD(coalesce(lct2010suf,''), 2, '0') || LPAD(lcb2010, 4, '0') || coalesce(lcb2010suf,'') lbctcb2010,
+            rboro || LPAD(rct2010, 4, '0') || LPAD(coalesce(rct2010suf,''), 2, '0') || LPAD(rcb2010, 4, '0') || coalesce(rcb2010suf,'') rbctcb2010,
+            streetwidt width,
+            xfrom, yfrom,
+            xto, yto,
+            seqnum,
+            nodeidfrom,
+            nodeidto,
+            geom
+        from street_segment
+        where rb_layer in ('R', 'B') --exclude generic segments
+)
 insert into blockface_geom (
     blockface,
     sos,
     azimuth,
     bctcb2010,
-    geom,
-    width
+    width,
+    geom
 ) select
     blockface,
     sos,
-    azimuth,
+    90 - atan2d(dy, dx) - case when boro = '1' then 30 else 0 end azimuth,
     bctcb2010,
-    ST_Multi(geom),
-    width
+    width,
+    ST_Multi(
+        ST_OffsetCurve(
+            MultiLineSubstring(
+                geom, 
+                case 
+                    when from_st_width > ST_Length(geom) then 0 
+                    else coalesce(from_st_width/2, 0)/ST_Length(geom)
+                end, 
+                case 
+                    when to_st_width > ST_Length(geom) then 1
+                    else 1 - coalesce(to_st_width/2, 0)/ST_Length(geom)
+                end
+            ),
+            case 
+                when sos = 'l' then width/2 
+                when sos = 'r' then -width/2 
+            end
+        )
+    ) geom
 from (
-    select 
-        b.*, 
-        90 - atan2d(dy, dx) - case when boro = '1' then 30 else 0 end azimuth
-    from (
-        select
-            lblockface as blockface,
-            min(streetcode) streetcode,
-            'l' as sos,
-            max(lboro) boro,
-            max(lboro || LPAD(lct2010, 4, '0') || LPAD(coalesce(lct2010suf,''), 2, '0') || LPAD(lcb2010, 4, '0') || coalesce(lcb2010suf,'')) as bctcb2010,
-            max(streetwidt) width,
+    select
+        lblockface as blockface,
+        min(streetcode) streetcode,
+        'l' as sos,
+        max(lboro) boro,
+        max(lbctcb2010) bctcb2010,
+        min(width) width,
 --option 1: orientation of this block
 --          sum(xto - xfrom) dx,
 --          sum(yto - yfrom) dy,
-            ST_Union(ST_OffsetCurve(geom, streetwidt/2)) geom
-        from street_segment
-        where lblockface is not null
-        group by lblockface
-        union all
-        select
-            rblockface as blockface,
-            min(streetcode) streetcode,
-            'r' as sos,
-            max(rboro) boro,
-            max(rboro || LPAD(rct2010, 4, '0') || LPAD(coalesce(rct2010suf,''), 2, '0') || LPAD(rcb2010, 4, '0') || coalesce(rcb2010suf,'')) as bctcb2010,
-            max(streetwidt) width,
+        ST_Union(geom order by seqnum) geom,
+        right(min(seqnum || nodeidfrom), 7) nodeidfrom,
+        right(max(seqnum || nodeidto), 7) nodeidto
+    from ss
+    where lblockface is not null
+    group by lblockface
+    union all
+    select
+        rblockface as blockface,
+        min(streetcode) streetcode,
+        'r' as sos,
+        max(rboro) boro,
+        max(rbctcb2010) as bctcb2010,
+        min(width) width,
 --          sum(xto - xfrom) dx,
 --          sum(yto - yfrom) dy,
-            ST_Union(ST_OffsetCurve(geom, -streetwidt/2)) geom
-        from street_segment
-        where rblockface is not null
-        group by rblockface
-    ) b
+        ST_Union(geom order by seqnum) geom,
+        right(min(seqnum || nodeidfrom), 7) nodeidfrom,
+        right(max(seqnum || nodeidto), 7) nodeidto
+    from ss
+    where rblockface is not null
+    group by rblockface
+) b
 --option 2: orientation of the entire street
-    join (select
-        streetcode,
-        sum(xto - xfrom) dx,
-        sum(yto - yfrom) dy
-        from street_segment
-        group by streetcode
-    ) s on b.streetcode = s.streetcode
-) s;
-
+join (select
+    streetcode,
+    sum(xto - xfrom) dx,
+    sum(yto - yfrom) dy
+    from street_segment
+    group by streetcode
+) s on b.streetcode = s.streetcode
+left join lateral (
+select max(streetwidt) from_st_width 
+from street_segment s1 
+where b.streetcode != s1.streetcode 
+and (s1.nodeidfrom = b.nodeidfrom 
+    or s1.nodeidto = b.nodeidfrom)
+limit 1) x1 on true
+left join lateral (
+select max(streetwidt) to_st_width 
+from street_segment s2 
+where b.streetcode != s2.streetcode 
+and (s2.nodeidfrom = b.nodeidto 
+    or s2.nodeidto = b.nodeidto)
+limit 1) x2 on true;
 
 --there are roughly 1000 blockfaces that are on both the left and right side of the street (????).
 --there are 18 blockfaces with no geometry (???)
