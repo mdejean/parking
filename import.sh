@@ -19,11 +19,12 @@ shp2pgsql -I -D -s 2263 import/nycb2010wi.shp census_block | psql -v ON_ERROR_ST
 shp2pgsql -I -D -s 4326 -m import/columns.txt import/Parking_Regulation_Shapefile/Parking_Regulation_Shapefile.shp parking_regulation | psql -v ON_ERROR_STOP=1 parking
 shp2pgsql -I -D -s 2263 import/NYC_Hydrants/NYCDEP_Hydrants.shp hydrant | psql -v ON_ERROR_STOP=1 parking
 
+psql -v ON_ERROR_STOP=1 -f import.sql parking
+
 psql -v ON_ERROR_STOP=1 -f blockface_geom.sql parking
 
 psql -v ON_ERROR_STOP=1 -f blockface_hydrant.sql parking
 
-psql -v ON_ERROR_STOP=1 -f sign.sql parking
 psql -v ON_ERROR_STOP=1 -f supersedes.sql parking
 
 psql -v ON_ERROR_STOP=1 -f order_segment.sql parking

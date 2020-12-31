@@ -73,3 +73,5 @@ CREATE TABLE public.sign_regulation
   arrow character(3),
   CONSTRAINT sign_regulation_pkey PRIMARY KEY (id)
 );
+
+create index ix_sign_regulation_mutcd_code on sign_regulation (mutcd_code);
