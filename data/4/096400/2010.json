@@ -1,1 +1,1 @@
-{"S-165413":{"signs":[],"geom":{"type":"LineString","coordinates":[[-73.795911,40.591049],[-73.795895,40.590799]]},"main_st":"BEACH   67 STREET","from_st":"ROCKAWAY BEACH BOULEVARD","to_st":"ROCKAWAY FREEWAY","sos":"E","parking":[]}}
+{"S-165413":{"main_st":"BEACH   67 STREET","from_st":"ROCKAWAY BEACH BOULEVARD","to_st":"ROCKAWAY FREEWAY","sos":"E","error":null,"geom":{"type":"LineString","coordinates":[[-73.795909,40.591014],[-73.795898,40.590854]]},"length":"59","signs":[]}}

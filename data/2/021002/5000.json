@@ -1,1 +1,1 @@
-{"":{"signs":[],"geom":{"type":"MultiLineString","coordinates":[[[-73.859116,40.83841],[-73.859044,40.838215]],[[-73.859044,40.838215],[-73.859044,40.838215]],[[-73.859044,40.838215],[-73.859044,40.838215]],[[-73.859044,40.838215],[-73.859033,40.838186]]]},"main_st":null,"from_st":null,"to_st":null,"sos":null,"parking":[]}}
+{"1422604845":{"main_st":null,"from_st":null,"to_st":null,"sos":null,"error":null,"geom":{"type":"LineString","coordinates":[[-73.859102,40.838373],[-73.859046,40.83822]]},"length":"58","signs":[]}}

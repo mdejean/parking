@@ -1,1 +1,1 @@
-{"S-005906":{"signs":[],"geom":{"type":"MultiLineString","coordinates":[[[-73.810365,40.589919],[-73.810924,40.589479]],[[-73.810269,40.5903],[-73.810354,40.589935]]]},"main_st":"JAVA PLACE","from_st":"BEACH   85 STREET","to_st":"BEACH CHANNEL DRIVE","sos":"E","parking":[]}}
+{"S-005906":{"main_st":"JAVA PLACE","from_st":"BEACH   85 STREET","to_st":"BEACH CHANNEL DRIVE","sos":"E","error":null,"geom":{"type":"MultiLineString","coordinates":[[[-73.810365,40.589919],[-73.810904,40.589495]],[[-73.810279,40.59026],[-73.810354,40.589935]]]},"length":"335","signs":[]}}

@@ -1,1 +1,1 @@
-{"S-270881":{"signs":[],"geom":{"type":"LineString","coordinates":[[-74.084402,40.608187],[-74.085124,40.60861]]},"main_st":"PIERCE STREET","from_st":"HANOVER AVENUE","to_st":"NECKAR AVENUE","sos":"S","parking":[]}}
+{"S-270881":{"main_st":"PIERCE STREET","from_st":"HANOVER AVENUE","to_st":"NECKAR AVENUE","sos":"S","error":null,"geom":{"type":"LineString","coordinates":[[-74.084457,40.608219],[-74.085081,40.608585]]},"length":"219","signs":[]}}

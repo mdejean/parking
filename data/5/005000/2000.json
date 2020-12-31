@@ -1,1 +1,1 @@
-{"":{"signs":[],"geom":{"type":"LineString","coordinates":[[-74.085691,40.606637],[-74.085021,40.606502],[-74.084165,40.606355],[-74.083054,40.606198]]},"main_st":null,"from_st":null,"to_st":null,"sos":null,"parking":[]}}
+{"1622602474":{"main_st":null,"from_st":null,"to_st":null,"sos":null,"error":null,"geom":{"type":"LineString","coordinates":[[-74.085691,40.606637],[-74.085021,40.606502],[-74.084165,40.606355],[-74.083142,40.60621]]},"length":"725","signs":[]}}

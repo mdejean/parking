@@ -1,1 +1,1 @@
-{"":{"signs":[],"geom":{"type":"LineString","coordinates":[[-73.776254,40.79098],[-73.77564,40.790328]]},"main_st":null,"from_st":null,"to_st":null,"sos":null,"parking":[]}}
+{"0112263599":{"main_st":null,"from_st":null,"to_st":null,"sos":null,"error":null,"geom":{"type":"LineString","coordinates":[[-73.776231,40.790956],[-73.775659,40.790348]]},"length":"272","signs":[]}}

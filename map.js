@@ -74,6 +74,8 @@ async function calculate_parking() {
         for (let period in periods) {
             for (let f of selection) {
                 let p = show_spaces ? f.properties.parking_spaces : f.properties.parking_length;
+                if (!p) continue;
+                
                 for (let type in types) {
                     for (const ds of data.datasets) {
                         if (ds.label == types[type].label) {
@@ -230,19 +232,19 @@ async function split(feature, layer) {
             switch (new_feature.properties.type) {
                 case 'order':
                     new_feature.properties.order_no = rowid;
-                    new_feature.properties.main_st = response[rowid]['main_st'];
-                    new_feature.properties.from_st = response[rowid]['from_st'];
-                    new_feature.properties.to_st = response[rowid]['to_st'];
-                    new_feature.properties.signs = response[rowid]['signs'];
                 case 'block':
                     new_feature.properties.block = feature.properties.block || rowid;
                 case 'tract':
                     new_feature.properties.tract = feature.properties.tract || rowid;
                 default:
                     new_feature.properties.borough = feature.properties.borough;
-                    new_feature.properties.parking_length = response[rowid]['parking_length'];
-                    new_feature.properties.parking_spaces = response[rowid]['parking_spaces'];
             }
+            
+            for (let k of Object.keys(response[rowid])) {
+                if (k == 'geom') continue;
+                new_feature.properties[k] = response[rowid][k];
+            }
+            
             if (response[rowid]['geom']) {
                 features_layer.addData(new_feature);
             } else {
@@ -270,10 +272,12 @@ async function load() {
     for (let borough in boroughs) {
         let feature = L.GeoJSON.asFeature(boroughs[borough]['geom']);
         feature.properties.type = 'borough';
+        feature.properties.type = 'borough';
         feature.properties.borough = borough;
-        feature.properties.name = boroughs[borough]['name'];
-        feature.properties.parking_length = boroughs[borough]['parking_length'];
-        feature.properties.parking_spaces = boroughs[borough]['parking_spaces'];
+        for (let k of Object.keys(boroughs[borough])) {
+            if (k == 'geom') continue;
+            feature.properties[k] = boroughs[borough][k];
+        }
         features_layer.addData(feature);
     }
     
@@ -281,6 +285,7 @@ async function load() {
     let response = await f.json();
     for (let rowid in response) {
             let new_feature = L.GeoJSON.asFeature({});
+            new_feature.properties.type = 'order';
             new_feature.properties.order_no = rowid;
             for (let k of Object.keys(response[rowid])) {
                 new_feature.properties[k] = response[rowid][k];
@@ -347,13 +352,11 @@ function intersectBounds(b1, b2) {
 function updateTooltip(e) {
     let layer = e.target;
     let feature = layer.feature;
-    let show_spaces = document.getElementById('tools').elements['show_spaces'].checked;
-    
-    let stat = parking_stat(show_spaces ? feature.properties.parking_spaces : feature.properties.parking_length);
     
     let tooltip_text = "";
     if (feature.properties.type == 'order') {
-        if (feature.properties.order_no) {
+        //actual order_no is S- or P-, just numbers is blockface
+        if (feature.properties.order_no > '9') {
             tooltip_text += "<h4>#" + feature.properties.order_no 
                 + "</h4><div>" + feature.properties.sos 
                 + " side of " + feature.properties.main_st 
@@ -364,8 +367,8 @@ function updateTooltip(e) {
                 + " block " + feature.properties.block 
                 + "</div>";
         } else {
-            tooltip_text += "<h4>No data</h4>"
-                + "<div>Approximately " + feature.properties.length + " ft</div>";
+            tooltip_text += "<h4>Blockface #" + feature.properties.order_no + "</h4>"
+                + "<div>Approximately " + Math.round(feature.properties.length) + " ft</div>";
         }
     } else if (feature.properties.type == 'block') {
         tooltip_text +=
@@ -384,8 +387,13 @@ function updateTooltip(e) {
             + "</h4>";
     }
     
-    tooltip_text += "<div>" + stat.min + " (" + days[stat.min_day] + " " + periods[stat.min_period] 
-    + ") to " + stat.max + " (" + days[stat.max_day] + " " + periods[stat.max_period] + ") " + (show_spaces ? "spaces" : "feet") + "</div>"; 
+    if (feature.properties.parking_spaces) {
+        let show_spaces = document.getElementById('tools').elements['show_spaces'].checked;
+        let stat = parking_stat(show_spaces ? feature.properties.parking_spaces : feature.properties.parking_length);
+        
+        tooltip_text += "<div>" + stat.min + " (" + days[stat.min_day] + " " + periods[stat.min_period] 
+        + ") to " + stat.max + " (" + days[stat.max_day] + " " + periods[stat.max_period] + ") " + (show_spaces ? "spaces" : "feet") + "</div>"; 
+    }
     
     layer.bindTooltip(tooltip_text);
     

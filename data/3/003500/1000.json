@@ -1,1 +1,1 @@
-{"S-01306755":{"signs":[],"geom":{"type":"LineString","coordinates":[[-73.975581,40.687032],[-73.976197,40.686971]]},"main_st":"LAFAYETTE AVENUE","from_st":"FULTON STREET","to_st":"SOUTH ELLIOTT PLACE","sos":"S","parking":[]}}
+{"S-01306755":{"main_st":"LAFAYETTE AVENUE","from_st":"FULTON STREET","to_st":"SOUTH ELLIOTT PLACE","sos":"S","error":null,"geom":{"type":"LineString","coordinates":[[-73.975638,40.687026],[-73.976125,40.686978]]},"length":"136","signs":[]}}
