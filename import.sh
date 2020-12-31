@@ -9,6 +9,8 @@ createdb parking
 psql -v ON_ERROR_STOP=1 -f postgis.sql parking
 psql -v ON_ERROR_STOP=1 -f multiline_functions.sql parking
 
+echo "import tables..."
+
 csvsql -e windows-1252 --db "postgresql:///parking" --tables location --insert --overwrite --chunk-size 5000 import/locations.csv
 csvsql -e windows-1252 --db "postgresql:///parking" --tables import_sign --insert --overwrite --chunk-size 5000 import/signs.csv
 ogr2ogr import/lion.shp import/lion/lion.gdb lion
@@ -21,21 +23,32 @@ shp2pgsql -I -D -s 2263 import/NYC_Hydrants/NYCDEP_Hydrants.shp hydrant | psql -
 
 psql -v ON_ERROR_STOP=1 -f import.sql parking
 
+echo "calculate blockface geometry..."
+
 psql -v ON_ERROR_STOP=1 -f blockface_geom.sql parking
+
+echo "hydrant positions..."
 
 psql -v ON_ERROR_STOP=1 -f blockface_hydrant.sql parking
 
-psql -v ON_ERROR_STOP=1 -f supersedes.sql parking
+echo "map order_no to blockfaces..."
 
 psql -v ON_ERROR_STOP=1 -f order_segment.sql parking
 php -f index.php order_segment
 
+echo "interpret signs..."
+
+psql -v ON_ERROR_STOP=1 -f supersedes.sql parking
 psql -v ON_ERROR_STOP=1 -f sign_regulation.sql parking
 php -f index.php interpret_signs
+
+echo "calculate parking spaces..."
 
 psql -v ON_ERROR_STOP=1 -f parking.sql parking
 php -f index.php parking
 psql -v ON_ERROR_STOP=1 -f spaces.sql parking
+
+echo "dump to files..."
 
 php -f index.php boroughs
 php -f index.php tracts
