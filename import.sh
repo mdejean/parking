@@ -7,7 +7,7 @@ psql postgres -c "drop database if exists parking;"
 createdb parking 
 
 psql -v ON_ERROR_STOP=1 -f postgis.sql parking
-psql -v ON_ERROR_STOP=1 -f MultiLineLocatePoint.sql parking
+psql -v ON_ERROR_STOP=1 -f multiline_functions.sql parking
 
 csvsql -e windows-1252 --db "postgresql:///parking" --tables location --insert --overwrite --chunk-size 5000 import/locations.csv
 csvsql -e windows-1252 --db "postgresql:///parking" --tables import_sign --insert --overwrite --chunk-size 5000 import/signs.csv
