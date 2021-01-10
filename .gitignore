@@ -1,9 +1,12 @@
 import/
+geosupport
+extra
 blockface
 *.sql
 *.php
 *.c
 *.h
 *.php
+*.sh
 columns.txt
 .gh_pages
