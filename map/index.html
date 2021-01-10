@@ -6,17 +6,23 @@
     <script src="https://unpkg.com/leaflet@latest/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/proj4@latest/dist/proj4-src.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@latest/dist/Chart.min.js"></script>
-    <script src="html_tooltip.js"></script>
-    <link rel="stylesheet" href="html_tooltip.css">
-    <script src="json_table.js"></script>
+    <script src="../deps/html_tooltip.js"></script>
+    <link rel="stylesheet" href="../deps/html_tooltip.css">
+    <script src="../deps/json_table.js"></script>
     <style type='text/css'>
 html, body {
     height: 100vh;
     display: flex;
     flex-direction: column;
     font: menu;
+    font-size: 90%;
     line-height: 1;
     vertical-align: top;
+}
+
+h1 {
+    font-size: 200%;
+    font-weight: bold;
 }
 
 
@@ -149,7 +155,7 @@ td {
  <h1>Parking Map</h1>
  <div id="map"></div>
  <div id=bottom>
-     <div id="me">There are still many bugs and unimplemented features, and roughly 15% of streets need to be geocoded <a href="https://marcel.dejean.nyc">marcel.dejean.nyc</a></div>
+     <div id="me">There are still many <a href="https://github.com/mdejean/parking_map/issues">bugs and unimplemented features</a>, and roughly 15% of streets need to be geocoded <a href="https://marcel.dejean.nyc">marcel.dejean.nyc</a></div>
      <div id="chart"><canvas id="chart_canvas" height=40></canvas></div>
      <div id="errors"></div>
  </div>
