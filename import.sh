@@ -11,8 +11,8 @@ psql -v ON_ERROR_STOP=1 -f multiline_functions.sql parking
 
 echo "import tables..."
 
-csvsql -e windows-1252 --db "postgresql:///parking" --tables location --insert --overwrite --chunk-size 5000 import/locations.csv
-csvsql -e windows-1252 --db "postgresql:///parking" --tables import_sign --insert --overwrite --chunk-size 5000 import/signs.csv
+ogr2ogr -f "PostgreSQL" PG:"dbname=parking" -overwrite -nln location -oo AUTODETECT_TYPE=YES -oo EMPTY_STRING_AS_NULL=YES import/locations.csv
+iconv -f latin1 -t utf-8 import/signs.csv | ogr2ogr -f "PostgreSQL" PG:"dbname=parking" -overwrite -nln import_sign -oo AUTODETECT_TYPE=YES -oo EMPTY_STRING_AS_NULL=YES CSV:/vsistdin/
 ogr2ogr import/lion.shp import/lion/lion.gdb lion
 shp2pgsql -I -D -s 2263 import/lion.shp street_segment | psql -v ON_ERROR_STOP=1 parking
 shp2pgsql -I -D -s 2263 import/nybb.shp borough | psql -v ON_ERROR_STOP=1 parking
