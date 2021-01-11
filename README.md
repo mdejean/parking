@@ -1,19 +1,20 @@
-parking_map
+parking/map
 ================
 
 A map showing the amount of curbside parking space in New York City.
 
 ## See it online
 
-https://marcel.dejean.nyc/parking_map/map.html
+https://marcel.dejean.nyc/parking/map/
 
 ## Run it locally
 
 1. Install the dependencies
 2. get the data and put it in `import/`
 3. run `./import.sh`
+4. run `./update_map.sh`
 4. run `php -S localhost:8080`
-5. Go to `http://localhost:8080/map.html` in your browser
+5. Go to `http://localhost:8080/map/` in your browser
 
 ## Data
 
@@ -34,7 +35,6 @@ These datasets must be unzipped and placed in import/
  * postgresql >=11.0
  * postgis >=3.0
  * gdal-bin (for ogr2ogr)
- * csvkit *>=1.0.5* (can be installed with `sudo pip install csvkit`)
  * [Geosupport Desktop Edition](https://www1.nyc.gov/site/planning/data-maps/open-data/dwn-gdelx-request.page)
  * gcc
 
