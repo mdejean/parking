@@ -221,22 +221,13 @@ if (cmd('blocks')) {
         $block = substr($census_block, 7);
         @mkdir("data/$borough/$tract",0777, true);
         
-        $r = $get_signs->execute(['bctcb2010' => $census_block]);
-        if (!$r) {
-            trigger_error(print_r($get_signs->errorInfo(), true), E_USER_ERROR);
-        }
+        $get_signs->execute(['bctcb2010' => $census_block]);
         $signs = $get_signs->fetchAll(PDO::FETCH_ASSOC);
         
-        $r = $get_geometry->execute(['bctcb2010' => $census_block]);
-        if (!$r) {
-            trigger_error(print_r($get_geometry->errorInfo(), true), E_USER_ERROR);
-        }
+        $get_geometry->execute(['bctcb2010' => $census_block]);
         $geometry = $get_geometry->fetchAll(PDO::FETCH_ASSOC);
         
-        $r = $get_parking->execute(['bctcb2010' => $census_block]);
-        if (!$r) {
-            trigger_error(print_r($get_parking->errorInfo(), true), E_USER_ERROR);
-        }
+        $get_parking->execute(['bctcb2010' => $census_block]);
         $parking = $get_parking->fetchAll(PDO::FETCH_ASSOC);
         
         $all = [];
