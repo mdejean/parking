@@ -797,7 +797,10 @@ order by s.distx, s.seq');
                             $next = next($poles);
                             prev($poles);
                             //if none match this, this extends backwards to the curb
-                            if (!any(array_map(
+                            //there should always be another entry (usually CL/BL) after any
+                            // sign with an arrow, but in ~10 cases there isn't
+                            if ($next !== false and
+                                !any(array_map(
                                 function($reg2) use ($reg) {
                                     return $reg->equals($reg2);
                                 }, $next))) {
