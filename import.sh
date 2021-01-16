@@ -4,9 +4,8 @@ set -e
 gcc -Wall -Werror geosupport/blockface.c -L/opt/geosupport/lib/ -lgeo -lapequiv -ledequiv -lsan -lsnd -lstExcpt -lStdLast -lStdUniv -lstEnder -lstretch -lthined -lm -lc -lgcc_s -ldl -o blockface
 
 psql postgres -c "drop database if exists parking;"
-createdb parking 
+createdb parking -T postgis_template
 
-psql -v ON_ERROR_STOP=1 -f postgis.sql parking
 psql -v ON_ERROR_STOP=1 -f multiline_functions.sql parking
 
 echo "import tables..."

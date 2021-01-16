@@ -10,11 +10,13 @@ https://marcel.dejean.nyc/parking/map/
 ## Run it locally
 
 1. Install the dependencies
-2. get the data and put it in `import/`
-3. run `./import.sh`
-4. run `./update_map.sh`
-4. run `php -S localhost:8080`
-5. Go to `http://localhost:8080/map/` in your browser
+2. Add the user who will be running the script to postgres `createuser -d myusername`
+3. Create the template database `sudo -U postgres -f postgis_template.sql`
+4. Get the data and put it in `import/`
+5. Run `./import.sh`
+6. Run `./update_map.sh`
+7. Run `php -S localhost:8080`
+8. Go to `http://localhost:8080/map/` in your browser
 
 ## Data
 
