@@ -29,7 +29,7 @@ These datasets must be unzipped and placed in import/
  * [nybb.shp Borough boundaries (clipped to shoreline)](https://www1.nyc.gov/site/planning/data-maps/open-data/districts-download-metadata.page)
  * [nyct2010wi.shp Census tracts (water included)](https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyct2010wi_20d.zip)
  * [nycb2010wi.shp Census blocks (water included)](https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nycb2010wi_20d.zip)
- * [NYC_Hydrants/ Fire hydrants](https://data.cityofnewyork.us/api/geospatial/6pui-xhxz?method=export&format=Original)
+ * [DEPHydrants/ Fire hydrants](https://data.cityofnewyork.us/api/geospatial/6pui-xhxz?method=export&format=Original)
 
 ## Dependencies
 
