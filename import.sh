@@ -20,6 +20,13 @@ shp2pgsql -I -D -s 2263 import/nycb2010wi.shp census_block | psql -v ON_ERROR_ST
 shp2pgsql -I -D -s 4326 -m import/columns.txt import/Parking_Regulation_Shapefile/Parking_Regulation_Shapefile.shp parking_regulation | psql -v ON_ERROR_STOP=1 parking
 shp2pgsql -I -D -s 2263 import/DEPHydrants/DEPHYDRANTS.shp hydrant | psql -v ON_ERROR_STOP=1 parking
 
+shp2pgsql -I -D -s 2263 import/MapPLUTO.shp pluto | psql -v ON_ERROR_STOP=1 parking
+ogr2ogr -f "PostgreSQL" PG:"dbname=parking" -overwrite -nln import_garage -lco GEOMETRY_NAME=geom -oo X_POSSIBLE_NAMES=longitude -oo Y_POSSIBLE_NAMES=latitude -oo AUTODETECT_TYPE=YES -oo EMPTY_STRING_AS_NULL=YES import/Active_DCA-Licensed_Garages_and_Parking_Lots.csv
+
+ogr2ogr -f "PostgreSQL" PG:"dbname=parking" -overwrite -nln employment -oo AUTODETECT_TYPE=YES -oo EMPTY_STRING_AS_NULL=YES import/census/employment.csv
+ogr2ogr -f "PostgreSQL" PG:"dbname=parking" -overwrite -nln population -oo AUTODETECT_TYPE=YES -oo EMPTY_STRING_AS_NULL=YES import/census/population.csv
+ogr2ogr -f "PostgreSQL" PG:"dbname=parking" -overwrite -nln vehicle_ownership -oo AUTODETECT_TYPE=YES -oo EMPTY_STRING_AS_NULL=YES import/census/vehicle_ownership.csv
+
 psql -v ON_ERROR_STOP=1 -f import.sql parking
 
 echo "calculate blockface geometry..."

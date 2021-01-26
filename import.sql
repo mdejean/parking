@@ -60,3 +60,46 @@ create index ix_census_block_bctcb2010 on census_block (bctcb2010);
 -- parking_regulation
 
 create index ix_parking_regulation_order_no on parking_regulation(order_no);
+
+-- import_garage -> garage
+
+delete from import_garage where "dca license number" = '1461260-DCA' and bbl is null;
+
+drop table if exists garage;
+
+create table garage (
+    license_no character varying,
+    name character varying,
+    address character varying,
+    type character varying,
+    spaces int,
+    bicycle_spaces int,
+    bbl character varying,
+    primary key (license_no)
+);
+
+SELECT AddGeometryColumn ('public','garage','geom',2263,'POINT',2);
+
+insert into garage
+select
+    "dca license number",
+    "business name",
+    "address building" || ' ' || "address street name" || ' ' || "address city" || ', ' || "address state" || ' ' || "address zip", 
+    "industry",
+    cast(nullif(trim(split_part(split_part(detail,',',1), ':', 2)), '') as int) spaces,
+    cast(nullif(trim(split_part(split_part(detail,',',2), ':', 2)), '') as int) bicycle_spaces,
+    bbl,
+    geom
+from import_garage;
+
+-- population
+alter table population drop column ogc_fid;
+alter table population add primary key (bct2010);
+-- employment
+alter table employment drop column ogc_fid;
+alter table employment add primary key (bct2010);
+-- population
+alter table vehicle_ownership drop column ogc_fid;
+alter table vehicle_ownership add primary key (bct2010);
+
+
