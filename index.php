@@ -46,7 +46,8 @@ if (cmd('order_segment')) {
                 . ' ' . escapeshellarg($row['to_street'])
                 . ' ' . escapeshellarg($row['sos']);
         $out = exec($cmd);
-        if (strpos($out, "{") === 0) {
+        
+        if (strpos($out, "{") === 0 or trim($out) == '') {
             $invalid++;
             $insert_err->execute(['order_no' => $row['order_no'], 'error' => $out]) or
                 trigger_error(print_r($insert_err->errorInfo(), true), E_USER_ERROR);;
