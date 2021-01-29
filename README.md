@@ -11,7 +11,7 @@ https://marcel.dejean.nyc/parking/map/
 
 1. Install the dependencies
 2. Add the user who will be running the script to postgres `createuser -d myusername`
-3. Create the template database `sudo -U postgres -f postgis_template.sql`
+3. Create the template database `sudo -u postgres psql -f postgis_template.sql`
 4. Get the data and put it in `import/`
 5. Run `./import.sh`
 6. Run `./update_map.sh`
@@ -30,6 +30,8 @@ These datasets must be unzipped and placed in import/
  * [nyct2010wi.shp Census tracts (water included)](https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyct2010wi_20d.zip)
  * [nycb2010wi.shp Census blocks (water included)](https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nycb2010wi_20d.zip)
  * [DEPHydrants/ Fire hydrants](https://data.cityofnewyork.us/api/geospatial/6pui-xhxz?method=export&format=Original)
+ * [MapPLUTO.shp](https://www1.nyc.gov/site/planning/data-maps/open-data/dwn-pluto-mappluto.page)
+ * [Active_DCA-Licensed_Garages_and_Parking_Lots.csv](https://data.cityofnewyork.us/Business/Active-DCA-Licensed-Garages-and-Parking-Lots/a7m8-iids)
 
 ## Dependencies
 
