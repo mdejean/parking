@@ -59,7 +59,7 @@ create index ix_census_block_bctcb2010 on census_block (bctcb2010);
 
 -- parking_regulation
 
-create index ix_parking_regulation_order_no on parking_regulation(order_no);
+create index ix_parking_regulation_order_no on parking_regulation(order_no, seq);
 
 -- import_garage -> garage
 

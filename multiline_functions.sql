@@ -12,6 +12,21 @@ order by dist
 limit 1;
 $$ language SQL;
 
+create or replace function MultiLineInterpolatePoint(line geometry, location float8) returns geometry as $$
+select 
+    ST_LineInterpolatePoint(parts.geom, (ST_Length(line) * location - segment_start) / segment_length)
+from (
+    select 
+        sum(ST_Length(l.geom)) over (order by l.path) - ST_Length(l.geom) segment_start,
+        sum(ST_Length(l.geom)) over (order by l.path) segment_end,
+        ST_Length(l.geom) + 0.001 segment_length,
+        l.geom geom
+    from ST_Dump(line) l
+) parts
+where ST_Length(line) * location between segment_start and segment_end 
+limit 1;
+$$ language SQL;
+
 create or replace function MultiLineSubstring(line geometry, startfraction float8, endfraction float8) returns geometry as $$
 select 
     ST_Union(

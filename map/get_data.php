@@ -161,18 +161,26 @@ if (cmd('blocks')) {
             s.seq,
             s.distx,
             s.arrow,
-            sr.mutcd_code,
-            sr.type,
-            sr.days,
-            sr.start_time,
-            sr.end_time,
-            sr.arrow as arrow_type,
-            sr.extra,
-            sr.checked
+            s.mutcd_code,
+            ST_AsGeoJSON(
+                ST_Transform(
+                    coalesce(
+--TODO: make a way to see the parking_regulation_shapefile points (theyre bad)
+--                        pr.geom, 
+                        MultiLineInterpolatePoint(
+                            bg.geom, 
+                            case
+                                when os.reversed then 1 - s.distx/ST_Length(bg.geom)
+                                else s.distx/ST_Length(bg.geom)
+                            end
+                        )
+                    ), 4326
+                ), 6, 0
+            ) geom
         from sign s
-        join sign_regulation sr on s.mutcd_code = sr.mutcd_code
         join order_segment os on os.order_no = s.order_no
         left join (select * from blockface_geom natural join b) bg on bg.blockface = os.blockface
+        left join parking_regulation pr on s.order_no = pr.order_no and s.seq = pr.seq
         join b on coalesce(bg.bctcb2010, os.bctcb2010) = b.bctcb2010
         order by os.order_no, s.seq
     ');
@@ -242,6 +250,7 @@ if (cmd('blocks')) {
         
         foreach ($signs as $sign) {
             $order = $sign['order_no'];
+            $sign['geom'] = json_decode($sign['geom']);
             unset($sign['order_no']);
             $all[$order]['signs'][] = $sign;
         }
@@ -305,4 +314,18 @@ if (cmd('ungeocoded')) {
     }
     
     file_put_contents("data/ungeocoded.json", json_encode($all));
+}
+
+if (cmd('signs')) {
+    $signs = $conn->query('
+        select
+            mutcd_code,
+            max(description) description
+        from sign s
+        group by mutcd_code')->fetchAll(PDO::FETCH_ASSOC);
+    $ret = [];
+    foreach ($signs as $sign) {
+        $ret[$sign['mutcd_code']] = $sign['description'];
+    }
+    file_put_contents("data/signs.json", json_encode($ret));
 }

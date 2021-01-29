@@ -41,6 +41,8 @@ let types = {
     '':   {label: "Free Parking",               color: "#8f8"}
 };
 
+let signs = {};
+
 function reset_data() {
     data = {
         labels: [],
@@ -219,7 +221,26 @@ async function split(feature, layer) {
                 + feature.properties.block + '.json');
             break;
         default:
-            return; //maybe show signs?
+        case 'order':
+            if (!Object.keys(signs).length) {
+                let f = await fetch('data/signs.json');
+                signs = await f.json();
+            }
+            
+            if (!feature.properties.show_signs) {
+                feature.properties.show_signs = true;
+                for (let sign of feature.properties.signs) {
+                    if (sign['geom']) {
+                        let new_feature = L.GeoJSON.asFeature(sign['geom'] || {});
+                        for (let k of Object.keys(sign)) {
+                            if (k == 'geom') continue;
+                            new_feature.properties[k] = sign[k];
+                        }
+                        signs_layer.addData(new_feature);
+                    }
+                }
+            }
+            return;
     }
     
     let response = await f.json();
@@ -438,6 +459,19 @@ var features_layer = L.geoJSON(
                 'click': doTool,
                 'mouseover': updateTooltip,
                 'mouseout': closeTooltip
+            });
+        }
+    }
+).addTo(map);
+
+var signs_layer = L.geoJSON(
+    [],
+    {
+        style: {},
+        onEachFeature: (feature, layer) => {
+            layer.bindPopup(signs[feature.properties.mutcd_code]);
+            layer.on({
+                'click': () => layer.setZIndexOffset(layer.options.zIndexOffset - 1)
             });
         }
     }
