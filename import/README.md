@@ -14,8 +14,7 @@ These datasets must be unzipped and placed in import/
  * [MapPLUTO.shp](https://www1.nyc.gov/site/planning/data-maps/open-data/dwn-pluto-mappluto.page)
  * [Active_DCA-Licensed_Garages_and_Parking_Lots.csv](https://data.cityofnewyork.us/Business/Active-DCA-Licensed-Garages-and-Parking-Lots/a7m8-iids)
 
-These datasets are provided in `census/` and might take a bit of work to update:
+These datasets are provided in `census/`:
 
- * `employment.csv` - from A202105 - Total Workers, 16 Years and Over, by Means of Transportation at Workplace
- * `population.csv` - from B01003 - Total Population
- * `vehicle_ownership.csv` - from B25046 - Aggregate Number of Vehicles Available by Tenure
+ * `NY_2012thru2016_A202105.csv` - Census Transportation Planning Products A202105 - Total Workers, 16 Years and Over, by Means of Transportation at Workplace
+ * `vehicle_ownership.csv` - population and vehicle ownership, fetched by `census.php`
