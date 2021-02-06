@@ -417,6 +417,15 @@ function updateTooltip(e) {
         + ") to " + stat.max + " (" + days[stat.max_day] + " " + periods[stat.max_period] + ") " + (show_spaces ? "spaces" : "feet") + "</div>"; 
     }
     
+    if (feature.properties.population) {
+        tooltip_text += "<div>" 
+            + "Population: " + feature.properties.population + "&#177;" + Math.round(feature.properties.population_error)
+            + " owning " + feature.properties.vehicles + "&#177;" + Math.round(feature.properties.vehicles_error) + " vehicles<br>"
+            + "Workers: " + feature.properties.workers + "&#177;" + Math.round(feature.properties.workers_error)
+            + " (" + feature.properties.workers_drive_alone + "&#177;" + Math.round(feature.properties.workers_drive_alone_error) + " drive to work)"
+            + "</div>";
+    }
+    
     layer.bindTooltip(tooltip_text);
     
     //leaflet's built in layer.getCenter() ignores all but the first line/polygon in a multi-x

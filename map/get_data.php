@@ -33,17 +33,34 @@ left join blockface_geom bg on bg.blockface = os.blockface
 join census_block cb on cb.bctcb2010 = coalesce(bg.bctcb2010, os.bctcb2010)
 group by cb.borocode, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
     $boro_geom = $conn->query('select
-    borocode,
-    boroname,
-    ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geojson
-    from borough')->fetchAll(PDO::FETCH_ASSOC);
+    b.borocode,
+    b.boroname as name,
+    ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
+    s.*
+    from borough b
+    left join (
+        select
+            ct.borocode,
+            sum(cs.vehicles) vehicles,
+            sqrt(sum(cs.vehicles_error * cs.vehicles_error)) vehicles_error,
+            sum(cs.population) population,
+            sqrt(sum(cs.population_error * cs.population_error)) population_error,
+            sum(cs.workers) workers,
+            sqrt(sum(cs.workers_error * cs.workers_error)) workers_error,
+            sum(cs.workers_drive_alone) workers_drive_alone,
+            sqrt(sum(cs.workers_drive_alone_error * cs.workers_drive_alone_error)) workers_drive_alone_error
+        from census_tract ct
+        left join census_stat cs on ct.boroct2010 = cs.boroct2010
+        group by ct.borocode
+    ) s on b.borocode = s.borocode')->fetchAll(PDO::FETCH_ASSOC);
+    
     $all = [];
     foreach ($boro_geom as $row) {
-        $all[$row['borocode']] = [
-            'name' => $row['boroname'],
-            'geom' => json_decode($row['geojson']),
-            'parking' => []
-        ];
+        $borocode = $row['borocode'];
+        unset($row['borocode']);
+        
+        $row['geom'] = json_decode($row['geom']);
+        $all[$borocode] = $row;
     }
     
     foreach ($boro_parking as $row) {
@@ -73,13 +90,15 @@ if (cmd('tracts')) {
     $tract_geom = $conn->prepare('
         select 
             ct2010, 
-            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geojson 
-            from census_tract ct 
+            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
+            cs.*
+        from census_tract ct
+        left join census_stat cs on ct.boroct2010 = cs.boroct2010
         where ct.borocode = :boro');
     $block_geom = $conn->prepare('
         select 
             cb2010, 
-            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geojson 
+            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom 
         from census_block
         where borocode = :boro and ct2010 = :ct2010');
     $block_parking = $conn->prepare('
@@ -104,11 +123,12 @@ if (cmd('tracts')) {
         $tg = $tract_geom->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($tg as $row) {
-            $all[$row['ct2010']] = [
-                'geom' => json_decode($row['geojson']),
-                'parking' => [],
-            ];
-        
+            $ct2010 = $row['ct2010'];
+            unset($row['ct2010']);
+            
+            $row['geom'] = json_decode($row['geom']);
+            
+            $all[$ct2010] = $row;
         }
         
         $tract_parking->execute(['boro' => $boro]);
@@ -124,17 +144,18 @@ if (cmd('tracts')) {
         
         $tracts = array_keys($all);
         unset($all);
-        
 
         foreach ($tracts as $tract) {
             $block_geom->execute(['boro' => $boro, 'ct2010' => $tract]);
             $result = $block_geom->fetchAll(PDO::FETCH_ASSOC);
             $all = [];
             foreach ($result as $row) {
-                $all[$row['cb2010']] = [
-                    'geom' => json_decode($row['geojson']),
-                    'parking' => [],
-                ];
+                $cb2010 = $row['cb2010'];
+                unset($row['cb2010']);
+                
+                $row['geom'] = json_decode($row['geom']);
+                
+                $all[$cb2010] = $row;
             }
             
             $block_parking->execute(['boro' => $boro, 'ct2010' => $tract]);
