@@ -36,7 +36,8 @@ group by cb.borocode, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
     b.borocode,
     b.boroname as name,
     ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
-    s.*
+    s.*,
+    uncoded.*
     from borough b
     left join (
         select
@@ -52,7 +53,15 @@ group by cb.borocode, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
         from census_tract ct
         left join census_stat cs on ct.boroct2010 = cs.boroct2010
         group by ct.borocode
-    ) s on b.borocode = s.borocode')->fetchAll(PDO::FETCH_ASSOC);
+    ) s on b.borocode = s.borocode
+    left join lateral (
+        select
+            sum(floor(st_length(bg.geom) / 18) * parking_lanes / 2) uncoded_spaces,
+            sum(st_length(bg.geom) * parking_lanes / 2) uncoded_ft
+        from blockface_geom bg
+        left join order_segment os on bg.blockface = os.blockface
+        where os.order_no is null and  ST_Within(bg.geom, b.geom)
+    ) uncoded on true')->fetchAll(PDO::FETCH_ASSOC);
     
     $all = [];
     foreach ($boro_geom as $row) {
@@ -91,15 +100,33 @@ if (cmd('tracts')) {
         select 
             ct2010, 
             ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
-            cs.*
+            cs.*,
+            uncoded.*
         from census_tract ct
         left join census_stat cs on ct.boroct2010 = cs.boroct2010
+        left join lateral (
+            select
+                sum(floor(st_length(bg.geom) / 18) * parking_lanes / 2) uncoded_spaces,
+                sum(st_length(bg.geom) * parking_lanes / 2) uncoded_ft
+            from blockface_geom bg
+            left join order_segment os on bg.blockface = os.blockface
+            where os.order_no is null and ST_Within(bg.geom, ct.geom)
+        ) uncoded on true
         where ct.borocode = :boro');
     $block_geom = $conn->prepare('
         select 
             cb2010, 
-            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom 
-        from census_block
+            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
+            uncoded.*
+        from census_block cb
+        left join lateral (
+            select
+                sum(floor(st_length(bg.geom) / 18) * parking_lanes / 2) uncoded_spaces,
+                sum(st_length(bg.geom) * parking_lanes / 2) uncoded_ft
+            from blockface_geom bg
+            left join order_segment os on bg.blockface = os.blockface
+            where os.order_no is null and ST_Within(bg.geom, cb.geom)
+        ) uncoded on true
         where borocode = :boro and ct2010 = :ct2010');
     $block_parking = $conn->prepare('
         select

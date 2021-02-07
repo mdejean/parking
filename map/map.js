@@ -415,6 +415,11 @@ function updateTooltip(e) {
         
         tooltip_text += "<div>" + stat.min + " (" + days[stat.min_day] + " " + periods[stat.min_period] 
         + ") to " + stat.max + " (" + days[stat.max_day] + " " + periods[stat.max_period] + ") " + (show_spaces ? "spaces" : "feet") + "</div>"; 
+        if (feature.properties.uncoded_spaces) {
+            tooltip_text += "<div>" 
+                + (show_spaces ? feature.properties.uncoded_spaces : feature.properties.uncoded_ft) 
+                + " " + (show_spaces ? "spaces" : "feet") + " of curb lane uncoded</div>";
+        }
     }
     
     if (feature.properties.population) {

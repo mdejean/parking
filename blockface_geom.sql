@@ -7,6 +7,7 @@ CREATE TABLE blockface_geom
     bctcb2010 character varying(12),
     width numeric,
     azimuth float,
+    parking_lanes int,
     primary key (blockface, sos)
 );
 
@@ -26,6 +27,7 @@ with ss as (
             seqnum,
             nodeidfrom,
             nodeidto,
+            cast(number_par as int) parking_lanes,
             geom
         from street_segment
         where rb_layer in ('R', 'B') --exclude generic segments
@@ -36,15 +38,21 @@ insert into blockface_geom (
     azimuth,
     bctcb2010,
     width,
+    parking_lanes,
     geom
 ) select
     blockface,
     sos,
+    -- the 'manhattan shift' considers manhattans avenues to be exactly north-south
     90 - atan2d(dy, dx) - case when boro = '1' then 30 else 0 end azimuth,
     bctcb2010,
     width,
+    parking_lanes,
     ST_Multi(
+        -- offset the street centerline to the curb
         ST_OffsetCurve(
+            -- cut the ends off the street where the street centerlines connect 
+            -- in the intersection
             MultiLineSubstring(
                 geom, 
                 case 
@@ -75,7 +83,8 @@ from (
 --          sum(yto - yfrom) dy,
         ST_Union(geom order by seqnum) geom,
         right(min(seqnum || nodeidfrom), 7) nodeidfrom,
-        right(max(seqnum || nodeidto), 7) nodeidto
+        right(max(seqnum || nodeidto), 7) nodeidto,
+        max(parking_lanes) parking_lanes
     from ss
     where lblockface is not null
     group by lblockface
@@ -91,7 +100,8 @@ from (
 --          sum(yto - yfrom) dy,
         ST_Union(geom order by seqnum) geom,
         right(min(seqnum || nodeidfrom), 7) nodeidfrom,
-        right(max(seqnum || nodeidto), 7) nodeidto
+        right(max(seqnum || nodeidto), 7) nodeidto,
+        max(parking_lanes) parking_lanes
     from ss
     where rblockface is not null
     group by rblockface
