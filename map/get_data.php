@@ -60,7 +60,7 @@ group by cb.borocode, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
             sum(st_length(bg.geom) * parking_lanes / 2) uncoded_ft
         from blockface_geom bg
         left join order_segment os on bg.blockface = os.blockface
-        where os.order_no is null and  ST_Within(bg.geom, b.geom)
+        where os.order_no is null and left(bg.bctcb2010, 1) = b.borocode
     ) uncoded on true')->fetchAll(PDO::FETCH_ASSOC);
     
     $all = [];
@@ -110,7 +110,7 @@ if (cmd('tracts')) {
                 sum(st_length(bg.geom) * parking_lanes / 2) uncoded_ft
             from blockface_geom bg
             left join order_segment os on bg.blockface = os.blockface
-            where os.order_no is null and ST_Within(bg.geom, ct.geom)
+            where os.order_no is null and left(bg.bctcb2010, 7) = ct.boroct2010
         ) uncoded on true
         where ct.borocode = :boro');
     $block_geom = $conn->prepare('
@@ -125,7 +125,7 @@ if (cmd('tracts')) {
                 sum(st_length(bg.geom) * parking_lanes / 2) uncoded_ft
             from blockface_geom bg
             left join order_segment os on bg.blockface = os.blockface
-            where os.order_no is null and ST_Within(bg.geom, cb.geom)
+            where os.order_no is null and bg.bctcb2010 = cb.bctcb2010
         ) uncoded on true
         where borocode = :boro and ct2010 = :ct2010');
     $block_parking = $conn->prepare('
@@ -242,7 +242,10 @@ if (cmd('blocks')) {
             l.sos,
             max(io.error) error,
             ST_AsGeoJSON(ST_Transform(ST_Union(geom), 4326), 6, 0) geom,
-            round(ST_Length(ST_Union(geom))) length
+            round(ST_Length(ST_Union(geom))) length,
+            case when os.order_no is null then sum(floor(st_length(bg.geom) / 18) * parking_lanes / 2) end uncoded_spaces,
+            case when os.order_no is null then sum(st_length(bg.geom) * parking_lanes / 2) end uncoded_ft,
+            parking_lanes
         from (select * from blockface_geom natural join b) bg
         full outer join order_segment os on bg.blockface = os.blockface
         left join location l on l.order_no = os.order_no
