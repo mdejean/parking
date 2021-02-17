@@ -45,6 +45,15 @@ from import_sign;
 
 drop table import_sign;
 
+--delete non-parking signs
+delete from sign 
+where not (
+    mutcd_code in ('PL', 'BL', 'CL') 
+    or mutcd_code like 'PS-%' 
+    or mutcd_code like 'SP-%' 
+    or mutcd_code like 'R7-%'
+);
+
 -- street_segment
 
 create index ix_street_segment_lblockface on street_segment (lblockface);
