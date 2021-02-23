@@ -275,9 +275,9 @@ if (cmd('blocks')) {
             max(io.error) error,
             ST_AsGeoJSON(ST_Transform(ST_Union(geom), 4326), 6, 0) geom,
             round(ST_Length(ST_Union(geom))) length,
-            case when os.order_no is null then sum(floor(st_length(bg.geom) / 18) * parking_lanes / 2) end uncoded_spaces,
-            case when os.order_no is null then sum(st_length(bg.geom) * parking_lanes / 2) end uncoded_ft,
-            parking_lanes
+            sum(case when os.order_no is null then floor(st_length(bg.geom) / 18) * parking_lanes / 2 end) uncoded_spaces,
+            sum(case when os.order_no is null then st_length(bg.geom) * parking_lanes / 2 end) uncoded_ft,
+            max(parking_lanes) parking_lanes
         from (select * from blockface_geom natural join b) bg
         full outer join order_segment os on bg.blockface = os.blockface
         left join location l on l.order_no = os.order_no
