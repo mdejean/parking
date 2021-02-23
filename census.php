@@ -2,8 +2,8 @@
 
 $vars = [
     'B01003_001' => 'population',
-    'B25046_001' => 'vehicles',
-    'B08014_003' => 'vehicles_1',
+    'B25046_001' => 'vehicles', //missing in some areas
+    'B08014_003' => 'vehicles_1', //only counts workers. Perhaps consider B08201_003 which counts households
     'B08014_004' => 'vehicles_2',
 ];
 

@@ -37,7 +37,8 @@ group by cb.borocode, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
     b.boroname as name,
     ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
     s.*,
-    uncoded.*
+    uncoded.*,
+    offstreet.*
     from borough b
     left join (
         select
@@ -61,7 +62,14 @@ group by cb.borocode, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
         from blockface_geom bg
         left join order_segment os on bg.blockface = os.blockface
         where os.order_no is null and left(bg.bctcb2010, 1) = b.borocode
-    ) uncoded on true')->fetchAll(PDO::FETCH_ASSOC);
+    ) uncoded on true
+    left join lateral (
+        select
+            sum(coalesce(op.spaces, floor((op.area / 150) ^ 0.63))) offstreet_spaces,
+            sum(case when op.source = \'D\' then op.spaces else 0 end) public_spaces
+        from offstreet_parking op
+        where left(op.bctcb2010, 1) = b.borocode
+    ) offstreet on true')->fetchAll(PDO::FETCH_ASSOC);
     
     $all = [];
     foreach ($boro_geom as $row) {
@@ -101,7 +109,8 @@ if (cmd('tracts')) {
             ct2010, 
             ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
             cs.*,
-            uncoded.*
+            uncoded.*,
+            offstreet.*
         from census_tract ct
         left join census_stat cs on ct.boroct2010 = cs.boroct2010
         left join lateral (
@@ -112,12 +121,20 @@ if (cmd('tracts')) {
             left join order_segment os on bg.blockface = os.blockface
             where os.order_no is null and left(bg.bctcb2010, 7) = ct.boroct2010
         ) uncoded on true
+        left join lateral (
+            select
+                sum(coalesce(op.spaces, floor((op.area / 150) ^ 0.63))) offstreet_spaces,
+                sum(case when op.source = \'D\' then op.spaces else 0 end) public_spaces
+            from offstreet_parking op
+            where left(op.bctcb2010, 7) = ct.boroct2010
+        ) offstreet on true
         where ct.borocode = :boro');
     $block_geom = $conn->prepare('
         select 
             cb2010, 
             ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
-            uncoded.*
+            uncoded.*,
+            offstreet.*
         from census_block cb
         left join lateral (
             select
@@ -127,6 +144,13 @@ if (cmd('tracts')) {
             left join order_segment os on bg.blockface = os.blockface
             where os.order_no is null and bg.bctcb2010 = cb.bctcb2010
         ) uncoded on true
+        left join lateral (
+            select
+                sum(coalesce(op.spaces, floor((op.area / 150) ^ 0.63))) offstreet_spaces,
+                sum(case when op.source = \'D\' then op.spaces else 0 end) public_spaces
+            from offstreet_parking op
+            where op.bctcb2010 = cb.bctcb2010
+        ) offstreet on true
         where borocode = :boro and ct2010 = :ct2010');
     $block_parking = $conn->prepare('
         select
@@ -144,6 +168,8 @@ if (cmd('tracts')) {
         and cb.ct2010 = :ct2010
         group by cb.cb2010, p.day, p.period, p.type');
     foreach ([1, 2, 3, 4, 5] as $boro) {
+        echo "\n$boro:\n";
+        
         $all = [];
         
         $tract_geom->execute(['boro' => $boro]);
@@ -171,6 +197,8 @@ if (cmd('tracts')) {
         
         $tracts = array_keys($all);
         unset($all);
+        
+        $tract_no = 0;
 
         foreach ($tracts as $tract) {
             $block_geom->execute(['boro' => $boro, 'ct2010' => $tract]);
@@ -193,8 +221,12 @@ if (cmd('tracts')) {
             }
             @mkdir("data/$boro/$tract",0777, true);
             file_put_contents("data/$boro/$tract/blocks.json", json_encode($all));
+            
+            $tract_no++;
+            echo "\t$tract_no/" . count($tracts) . " tracts\r";
         }
     }
+    echo "\n";
 }
 
 if (cmd('blocks')) {

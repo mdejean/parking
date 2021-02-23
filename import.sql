@@ -91,13 +91,15 @@ create index ix_census_block_b_ct_cb on census_block (borocode, ct2010, cb2010);
 
 create index ix_parking_regulation_order_no on parking_regulation(order_no, seq);
 
--- import_garage -> garage
+-- import_garage -> dca_garage
 
 delete from import_garage where "dca license number" = '1461260-DCA' and bbl is null;
+update import_garage set bbl = null where bbl like '%000000000';
+update import_garage set geom = null where ST_X(geom) < -75;
 
-drop table if exists garage;
+drop table if exists dca_garage;
 
-create table garage (
+create table dca_garage (
     license_no character varying,
     name character varying,
     address character varying,
@@ -108,9 +110,9 @@ create table garage (
     primary key (license_no)
 );
 
-SELECT AddGeometryColumn ('public','garage','geom',2263,'POINT',2);
+SELECT AddGeometryColumn ('public','dca_garage','geom',2263,'POINT',2);
 
-insert into garage
+insert into dca_garage
 select
     "dca license number",
     "business name",
@@ -119,10 +121,16 @@ select
     cast(nullif(trim(split_part(split_part(detail,',',1), ':', 2)), '') as int) spaces,
     cast(nullif(trim(split_part(split_part(detail,',',2), ':', 2)), '') as int) bicycle_spaces,
     bbl,
-    geom
+    ST_Transform(ST_SetSRID(geom, 4326), 2263)
 from import_garage;
 
 drop table import_garage;
+
+-- pluto
+
+alter table pluto alter column bbl set data type character varying using cast(round(bbl) as character varying);
+
+create index ix_pluto_bbl on pluto (bbl);
 
 -- import_vehicle_ownership, import_employment -> census_stat
 

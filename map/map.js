@@ -431,6 +431,13 @@ function updateTooltip(e) {
             + "</div>";
     }
     
+    if (feature.properties.offstreet_spaces) {
+        tooltip_text += "<div>" 
+            + "Off-street parking: " + feature.properties.offstreet_spaces 
+            + " (" + feature.properties.public_spaces + " in public lots)"
+            + "</div>";
+    }
+    
     layer.bindTooltip(tooltip_text);
     
     //leaflet's built in layer.getCenter() ignores all but the first line/polygon in a multi-x

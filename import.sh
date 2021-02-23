@@ -47,8 +47,13 @@ psql -v ON_ERROR_STOP=1 -f supersedes.sql parking
 psql -v ON_ERROR_STOP=1 -f sign_regulation.sql parking
 php -f index.php interpret_signs
 
+echo "calculate garage spaces..."
+
+psql -v ON_ERROR_STOP=1 -f offstreet_parking.sql parking
+
 echo "calculate parking spaces..."
 
 psql -v ON_ERROR_STOP=1 -f parking.sql parking
 php -f index.php parking
 psql -v ON_ERROR_STOP=1 -f spaces.sql parking
+
