@@ -220,6 +220,21 @@ async function split(feature, layer) {
                 + feature.properties.borough + '/' 
                 + feature.properties.tract + '/' 
                 + feature.properties.block + '.json');
+
+            // show buildings with offstreet parking
+            if (!feature.properties.show_offstreet) {
+                feature.properties.show_offstreet = true;
+                for (let offstreet of feature.properties.offstreet) {
+                    if (offstreet['geom']) {
+                        let new_feature = L.GeoJSON.asFeature(offstreet['geom'] || {});
+                        for (let k of Object.keys(offstreet)) {
+                            if (k == 'geom') continue;
+                            new_feature.properties[k] = offstreet[k];
+                        }
+                        offstreet_layer.addData(new_feature);
+                    }
+                }
+            }
             break;
         default:
         case 'order':
@@ -492,6 +507,20 @@ var signs_layer = L.geoJSON(
         style: {},
         onEachFeature: (feature, layer) => {
             layer.bindPopup(signs[feature.properties.mutcd_code]);
+            layer.on({
+                'click': () => layer.setZIndexOffset(layer.options.zIndexOffset - 1)
+            });
+        }
+    }
+).addTo(map);
+
+var offstreet_layer = L.geoJSON(
+    [],
+    {
+        style: {},
+        onEachFeature: (feature, layer) => {
+            layer.bindPopup("<h4>BBL: " + feature.properties.bbl + " (" + feature.properties.source + ")</h4>"
+                            + "<div>" + feature.properties.spaces + "spaces in " + feature.properties.area + " ft^2</div>");
             layer.on({
                 'click': () => layer.setZIndexOffset(layer.options.zIndexOffset - 1)
             });

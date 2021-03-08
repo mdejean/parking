@@ -167,6 +167,26 @@ if (cmd('tracts')) {
         where cb.borocode = :boro
         and cb.ct2010 = :ct2010
         group by cb.cb2010, p.day, p.period, p.type');
+        
+    $block_offstreet = $conn->prepare('
+        select
+            cb.cb2010,
+            op.bbl,
+            op.area,
+            op.spaces,
+            op.source,
+            ST_AsGeoJSON(
+                ST_Transform(
+                   op.geom,
+                   4326
+                ), 6, 0
+            ) geom
+        from offstreet_parking op
+        join census_block cb on cb.bctcb2010 = op.bctcb2010
+        where cb.borocode = :boro
+        and cb.ct2010 = :ct2010
+        order by op.bctcb2010, op.bbl
+    ');
     foreach ([1, 2, 3, 4, 5] as $boro) {
         echo "\n$boro:\n";
         
@@ -209,6 +229,7 @@ if (cmd('tracts')) {
                 unset($row['cb2010']);
                 
                 $row['geom'] = json_decode($row['geom']);
+                $row['offstreet'] = [];
                 
                 $all[$cb2010] = $row;
             }
@@ -219,6 +240,19 @@ if (cmd('tracts')) {
                 array_set((int)$row['length'], $all, $row['cb2010'], 'parking_length', $row['day'], $row['period'], $row['type']);
                 array_set((int)$row['spaces'], $all, $row['cb2010'], 'parking_spaces', $row['day'], $row['period'], $row['type']);
             }
+            
+            $block_offstreet->execute(['boro' => $boro, 'ct2010' => $tract]);
+            $offstreet_parking = $block_offstreet->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($offstreet_parking as $row) {
+                $cb2010 = $row['cb2010'];
+                unset($row['cb2010']);
+                
+                $row['geom'] = json_decode($row['geom']);
+                
+                $all[$cb2010]['offstreet'][] = $row;
+            }
+            
+            
             @mkdir("data/$boro/$tract",0777, true);
             file_put_contents("data/$boro/$tract/blocks.json", json_encode($all));
             
