@@ -31,6 +31,7 @@ with ss as (
             geom
         from street_segment
         where rb_layer in ('R', 'B') --exclude generic segments
+        and specaddr is null --exclude alternate address segments
 )
 insert into blockface_geom (
     blockface,
