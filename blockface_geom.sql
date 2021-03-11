@@ -24,6 +24,7 @@ with ss as (
             streetwidt width,
             xfrom, yfrom,
             xto, yto,
+            facecode,
             seqnum,
             nodeidfrom,
             nodeidto,
@@ -82,7 +83,7 @@ from (
 --option 1: orientation of this block
 --          sum(xto - xfrom) dx,
 --          sum(yto - yfrom) dy,
-        ST_Union(geom order by seqnum) geom,
+        ST_Collect(geom order by facecode, seqnum) geom,
         right(min(seqnum || nodeidfrom), 7) nodeidfrom,
         right(max(seqnum || nodeidto), 7) nodeidto,
         max(parking_lanes) parking_lanes
@@ -99,7 +100,7 @@ from (
         min(width) width,
 --          sum(xto - xfrom) dx,
 --          sum(yto - yfrom) dy,
-        ST_Union(geom order by seqnum) geom,
+        ST_Collect(geom order by facecode, seqnum) geom,
         right(min(seqnum || nodeidfrom), 7) nodeidfrom,
         right(max(seqnum || nodeidto), 7) nodeidto,
         max(parking_lanes) parking_lanes
