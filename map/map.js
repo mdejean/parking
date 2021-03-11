@@ -220,6 +220,21 @@ async function split(feature, layer) {
                 + feature.properties.borough + '/' 
                 + feature.properties.tract + '/' 
                 + feature.properties.block + '.json');
+
+            // show buildings with offstreet parking
+            if (!feature.properties.show_offstreet) {
+                feature.properties.show_offstreet = true;
+                for (let offstreet of feature.properties.offstreet) {
+                    if (offstreet['geom']) {
+                        let new_feature = L.GeoJSON.asFeature(offstreet['geom'] || {});
+                        for (let k of Object.keys(offstreet)) {
+                            if (k == 'geom') continue;
+                            new_feature.properties[k] = offstreet[k];
+                        }
+                        offstreet_layer.addData(new_feature);
+                    }
+                }
+            }
             break;
         default:
         case 'order':
@@ -415,6 +430,27 @@ function updateTooltip(e) {
         
         tooltip_text += "<div>" + stat.min + " (" + days[stat.min_day] + " " + periods[stat.min_period] 
         + ") to " + stat.max + " (" + days[stat.max_day] + " " + periods[stat.max_period] + ") " + (show_spaces ? "spaces" : "feet") + "</div>"; 
+        if (feature.properties.uncoded_spaces) {
+            tooltip_text += "<div>" 
+                + (show_spaces ? feature.properties.uncoded_spaces : feature.properties.uncoded_ft) 
+                + " " + (show_spaces ? "spaces" : "feet") + " of curb lane uncoded</div>";
+        }
+    }
+    
+    if (feature.properties.population) {
+        tooltip_text += "<div>" 
+            + "Population: " + feature.properties.population + "&#177;" + Math.round(feature.properties.population_error)
+            + " owning " + feature.properties.vehicles + "&#177;" + Math.round(feature.properties.vehicles_error) + " vehicles<br>"
+            + "Workers: " + feature.properties.workers + "&#177;" + Math.round(feature.properties.workers_error)
+            + " (" + feature.properties.workers_drive_alone + "&#177;" + Math.round(feature.properties.workers_drive_alone_error) + " drive to work)"
+            + "</div>";
+    }
+    
+    if (feature.properties.offstreet_spaces) {
+        tooltip_text += "<div>" 
+            + "Off-street parking: " + feature.properties.offstreet_spaces 
+            + " (" + feature.properties.public_spaces + " in public lots)"
+            + "</div>";
     }
     
     layer.bindTooltip(tooltip_text);
@@ -471,6 +507,20 @@ var signs_layer = L.geoJSON(
         style: {},
         onEachFeature: (feature, layer) => {
             layer.bindPopup(signs[feature.properties.mutcd_code]);
+            layer.on({
+                'click': () => layer.setZIndexOffset(layer.options.zIndexOffset - 1)
+            });
+        }
+    }
+).addTo(map);
+
+var offstreet_layer = L.geoJSON(
+    [],
+    {
+        style: {},
+        onEachFeature: (feature, layer) => {
+            layer.bindPopup("<h4>BBL: " + feature.properties.bbl + " (" + feature.properties.source + ")</h4>"
+                            + "<div>" + feature.properties.spaces + "spaces in " + feature.properties.area + " ft^2</div>");
             layer.on({
                 'click': () => layer.setZIndexOffset(layer.options.zIndexOffset - 1)
             });

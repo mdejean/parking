@@ -1,1 +1,1 @@
-{"0102264286":{"main_st":null,"from_st":null,"to_st":null,"sos":null,"error":null,"geom":{"type":"LineString","coordinates":[[-73.901855,40.734368],[-73.901112,40.734003]]},"length":"245","signs":[]}}
+{"0102264286":{"main_st":null,"from_st":null,"to_st":null,"sos":null,"error":null,"geom":{"type":"LineString","coordinates":[[-73.901855,40.734368],[-73.901112,40.734003]]},"length":"245","uncoded_spaces":"13","uncoded_ft":"245.12113046580745","parking_lanes":2,"signs":[]}}

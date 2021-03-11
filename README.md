@@ -1,19 +1,22 @@
-parking_map
+parking/map
 ================
 
 A map showing the amount of curbside parking space in New York City.
 
 ## See it online
 
-https://marcel.dejean.nyc/parking_map/map.html
+https://marcel.dejean.nyc/parking/map/
 
 ## Run it locally
 
 1. Install the dependencies
-2. get the data and put it in `import/`
-3. run `./import.sh`
-4. run `php -S localhost:8080`
-5. Go to `http://localhost:8080/map.html` in your browser
+2. Add the user who will be running the script to postgres `createuser -d myusername`
+3. Create the template database `sudo -u postgres psql -f postgis_template.sql`
+4. Get the data and put it in `import/`
+5. Run `./import.sh`
+6. Run `./update_map.sh`
+7. Run `php -S localhost:8080`
+8. Go to `http://localhost:8080/map/` in your browser
 
 ## Data
 
@@ -26,7 +29,9 @@ These datasets must be unzipped and placed in import/
  * [nybb.shp Borough boundaries (clipped to shoreline)](https://www1.nyc.gov/site/planning/data-maps/open-data/districts-download-metadata.page)
  * [nyct2010wi.shp Census tracts (water included)](https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nyct2010wi_20d.zip)
  * [nycb2010wi.shp Census blocks (water included)](https://www1.nyc.gov/assets/planning/download/zip/data-maps/open-data/nycb2010wi_20d.zip)
- * [NYC_Hydrants/ Fire hydrants](https://data.cityofnewyork.us/api/geospatial/6pui-xhxz?method=export&format=Original)
+ * [DEPHydrants/ Fire hydrants](https://data.cityofnewyork.us/api/geospatial/6pui-xhxz?method=export&format=Original)
+ * [MapPLUTO.shp](https://www1.nyc.gov/site/planning/data-maps/open-data/dwn-pluto-mappluto.page)
+ * [Active_DCA-Licensed_Garages_and_Parking_Lots.csv](https://data.cityofnewyork.us/Business/Active-DCA-Licensed-Garages-and-Parking-Lots/a7m8-iids)
 
 ## Dependencies
 
@@ -34,7 +39,6 @@ These datasets must be unzipped and placed in import/
  * postgresql >=11.0
  * postgis >=3.0
  * gdal-bin (for ogr2ogr)
- * csvkit *>=1.0.5* (can be installed with `sudo pip install csvkit`)
  * [Geosupport Desktop Edition](https://www1.nyc.gov/site/planning/data-maps/open-data/dwn-gdelx-request.page)
  * gcc
 
@@ -42,4 +46,4 @@ These datasets must be unzipped and placed in import/
 
 Except as otherwise noted, this software is distributed under the terms of the GNU General Public License, version 2 or later. See LICENSE for the full text. Alternate licensing is available.
 
-Parts based on jamesbursa/analyze-nyc-parking-signs
+Parts based on jamesbursa/analyze-nyc-parking-signs (MIT License)

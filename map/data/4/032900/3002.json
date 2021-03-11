@@ -1,1 +1,1 @@
-{"S-098225":{"main_st":"  24 AVENUE","from_st":"ASTORIA BOULEVARD","to_st":"  82 STREET","sos":"N","error":null,"geom":null,"length":null,"signs":[{"seq":"1","distx":"0","arrow":"NULL","mutcd_code":"R6-1","geom":null}]}}
+{"S-098225":{"main_st":null,"from_st":null,"to_st":null,"sos":null,"error":null,"geom":null,"length":null,"uncoded_spaces":null,"uncoded_ft":null,"parking_lanes":null,"signs":[]}}

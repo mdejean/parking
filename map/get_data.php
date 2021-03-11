@@ -33,17 +33,51 @@ left join blockface_geom bg on bg.blockface = os.blockface
 join census_block cb on cb.bctcb2010 = coalesce(bg.bctcb2010, os.bctcb2010)
 group by cb.borocode, p.day, p.period, p.type')->fetchAll(PDO::FETCH_ASSOC);
     $boro_geom = $conn->query('select
-    borocode,
-    boroname,
-    ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geojson
-    from borough')->fetchAll(PDO::FETCH_ASSOC);
+    b.borocode,
+    b.boroname as name,
+    ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
+    s.*,
+    uncoded.*,
+    offstreet.*
+    from borough b
+    left join (
+        select
+            ct.borocode,
+            sum(cs.vehicles) vehicles,
+            sqrt(sum(cs.vehicles_error * cs.vehicles_error)) vehicles_error,
+            sum(cs.population) population,
+            sqrt(sum(cs.population_error * cs.population_error)) population_error,
+            sum(cs.workers) workers,
+            sqrt(sum(cs.workers_error * cs.workers_error)) workers_error,
+            sum(cs.workers_drive_alone) workers_drive_alone,
+            sqrt(sum(cs.workers_drive_alone_error * cs.workers_drive_alone_error)) workers_drive_alone_error
+        from census_tract ct
+        left join census_stat cs on ct.boroct2010 = cs.boroct2010
+        group by ct.borocode
+    ) s on b.borocode = s.borocode
+    left join lateral (
+        select
+            sum(floor(st_length(bg.geom) / 18) * parking_lanes / 2) uncoded_spaces,
+            sum(st_length(bg.geom) * parking_lanes / 2) uncoded_ft
+        from blockface_geom bg
+        left join order_segment os on bg.blockface = os.blockface
+        where os.order_no is null and left(bg.bctcb2010, 1) = b.borocode
+    ) uncoded on true
+    left join lateral (
+        select
+            sum(coalesce(op.spaces, floor((op.area / 150) ^ 0.63))) offstreet_spaces,
+            sum(case when op.source = \'D\' then op.spaces else 0 end) public_spaces
+        from offstreet_parking op
+        where left(op.bctcb2010, 1) = b.borocode
+    ) offstreet on true')->fetchAll(PDO::FETCH_ASSOC);
+    
     $all = [];
     foreach ($boro_geom as $row) {
-        $all[$row['borocode']] = [
-            'name' => $row['boroname'],
-            'geom' => json_decode($row['geojson']),
-            'parking' => []
-        ];
+        $borocode = $row['borocode'];
+        unset($row['borocode']);
+        
+        $row['geom'] = json_decode($row['geom']);
+        $all[$borocode] = $row;
     }
     
     foreach ($boro_parking as $row) {
@@ -73,14 +107,50 @@ if (cmd('tracts')) {
     $tract_geom = $conn->prepare('
         select 
             ct2010, 
-            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geojson 
-            from census_tract ct 
+            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
+            cs.*,
+            uncoded.*,
+            offstreet.*
+        from census_tract ct
+        left join census_stat cs on ct.boroct2010 = cs.boroct2010
+        left join lateral (
+            select
+                sum(floor(st_length(bg.geom) / 18) * parking_lanes / 2) uncoded_spaces,
+                sum(st_length(bg.geom) * parking_lanes / 2) uncoded_ft
+            from blockface_geom bg
+            left join order_segment os on bg.blockface = os.blockface
+            where os.order_no is null and left(bg.bctcb2010, 7) = ct.boroct2010
+        ) uncoded on true
+        left join lateral (
+            select
+                sum(coalesce(op.spaces, floor((op.area / 150) ^ 0.63))) offstreet_spaces,
+                sum(case when op.source = \'D\' then op.spaces else 0 end) public_spaces
+            from offstreet_parking op
+            where left(op.bctcb2010, 7) = ct.boroct2010
+        ) offstreet on true
         where ct.borocode = :boro');
     $block_geom = $conn->prepare('
         select 
             cb2010, 
-            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geojson 
-        from census_block
+            ST_AsGeoJSON(ST_Transform(geom, 4326), 6, 0) geom,
+            uncoded.*,
+            offstreet.*
+        from census_block cb
+        left join lateral (
+            select
+                sum(floor(st_length(bg.geom) / 18) * parking_lanes / 2) uncoded_spaces,
+                sum(st_length(bg.geom) * parking_lanes / 2) uncoded_ft
+            from blockface_geom bg
+            left join order_segment os on bg.blockface = os.blockface
+            where os.order_no is null and bg.bctcb2010 = cb.bctcb2010
+        ) uncoded on true
+        left join lateral (
+            select
+                sum(coalesce(op.spaces, floor((op.area / 150) ^ 0.63))) offstreet_spaces,
+                sum(case when op.source = \'D\' then op.spaces else 0 end) public_spaces
+            from offstreet_parking op
+            where op.bctcb2010 = cb.bctcb2010
+        ) offstreet on true
         where borocode = :boro and ct2010 = :ct2010');
     $block_parking = $conn->prepare('
         select
@@ -97,18 +167,41 @@ if (cmd('tracts')) {
         where cb.borocode = :boro
         and cb.ct2010 = :ct2010
         group by cb.cb2010, p.day, p.period, p.type');
+        
+    $block_offstreet = $conn->prepare('
+        select
+            cb.cb2010,
+            op.bbl,
+            op.area,
+            op.spaces,
+            op.source,
+            ST_AsGeoJSON(
+                ST_Transform(
+                   op.geom,
+                   4326
+                ), 6, 0
+            ) geom
+        from offstreet_parking op
+        join census_block cb on cb.bctcb2010 = op.bctcb2010
+        where cb.borocode = :boro
+        and cb.ct2010 = :ct2010
+        order by op.bctcb2010, op.bbl
+    ');
     foreach ([1, 2, 3, 4, 5] as $boro) {
+        echo "\n$boro:\n";
+        
         $all = [];
         
         $tract_geom->execute(['boro' => $boro]);
         $tg = $tract_geom->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($tg as $row) {
-            $all[$row['ct2010']] = [
-                'geom' => json_decode($row['geojson']),
-                'parking' => [],
-            ];
-        
+            $ct2010 = $row['ct2010'];
+            unset($row['ct2010']);
+            
+            $row['geom'] = json_decode($row['geom']);
+            
+            $all[$ct2010] = $row;
         }
         
         $tract_parking->execute(['boro' => $boro]);
@@ -125,16 +218,20 @@ if (cmd('tracts')) {
         $tracts = array_keys($all);
         unset($all);
         
+        $tract_no = 0;
 
         foreach ($tracts as $tract) {
             $block_geom->execute(['boro' => $boro, 'ct2010' => $tract]);
             $result = $block_geom->fetchAll(PDO::FETCH_ASSOC);
             $all = [];
             foreach ($result as $row) {
-                $all[$row['cb2010']] = [
-                    'geom' => json_decode($row['geojson']),
-                    'parking' => [],
-                ];
+                $cb2010 = $row['cb2010'];
+                unset($row['cb2010']);
+                
+                $row['geom'] = json_decode($row['geom']);
+                $row['offstreet'] = [];
+                
+                $all[$cb2010] = $row;
             }
             
             $block_parking->execute(['boro' => $boro, 'ct2010' => $tract]);
@@ -143,10 +240,27 @@ if (cmd('tracts')) {
                 array_set((int)$row['length'], $all, $row['cb2010'], 'parking_length', $row['day'], $row['period'], $row['type']);
                 array_set((int)$row['spaces'], $all, $row['cb2010'], 'parking_spaces', $row['day'], $row['period'], $row['type']);
             }
+            
+            $block_offstreet->execute(['boro' => $boro, 'ct2010' => $tract]);
+            $offstreet_parking = $block_offstreet->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($offstreet_parking as $row) {
+                $cb2010 = $row['cb2010'];
+                unset($row['cb2010']);
+                
+                $row['geom'] = json_decode($row['geom']);
+                
+                $all[$cb2010]['offstreet'][] = $row;
+            }
+            
+            
             @mkdir("data/$boro/$tract",0777, true);
             file_put_contents("data/$boro/$tract/blocks.json", json_encode($all));
+            
+            $tract_no++;
+            echo "\t$tract_no/" . count($tracts) . " tracts\r";
         }
     }
+    echo "\n";
 }
 
 if (cmd('blocks')) {
@@ -194,7 +308,10 @@ if (cmd('blocks')) {
             l.sos,
             max(io.error) error,
             ST_AsGeoJSON(ST_Transform(ST_Union(geom), 4326), 6, 0) geom,
-            round(ST_Length(ST_Union(geom))) length
+            round(ST_Length(ST_Union(geom))) length,
+            sum(case when os.order_no is null then floor(st_length(bg.geom) / 18) * parking_lanes / 2 end) uncoded_spaces,
+            sum(case when os.order_no is null then st_length(bg.geom) * parking_lanes / 2 end) uncoded_ft,
+            max(parking_lanes) parking_lanes
         from (select * from blockface_geom natural join b) bg
         full outer join order_segment os on bg.blockface = os.blockface
         left join location l on l.order_no = os.order_no

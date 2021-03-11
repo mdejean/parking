@@ -1,1 +1,1 @@
-{"0212262313":{"main_st":null,"from_st":null,"to_st":null,"sos":null,"error":null,"geom":{"type":"LineString","coordinates":[[-73.997143,40.696288],[-73.997236,40.69632]]},"length":"28","signs":[]}}
+{"0212262313":{"main_st":null,"from_st":null,"to_st":null,"sos":null,"error":null,"geom":{"type":"LineString","coordinates":[[-73.997143,40.696288],[-73.997236,40.69632]]},"length":"28","uncoded_spaces":"1","uncoded_ft":"28.179961883106895","parking_lanes":2,"signs":[]}}

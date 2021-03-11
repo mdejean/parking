@@ -1,1 +1,1 @@
-{"S-040988":{"main_st":"   6 AVENUE","from_st":"WEST   34 STREET","to_st":"CENTRAL PARK SOUTH","sos":"N","error":"{\"error_code\": \"54\", \"error_message\": \"INPUT DOES NOT DEFINE A STREET SEGMENT                                          \"}","geom":null,"length":null,"signs":[{"seq":"1","distx":"0","arrow":"NULL","mutcd_code":"M-1","geom":null}]}}
+{"S-040988":{"main_st":null,"from_st":null,"to_st":null,"sos":null,"error":null,"geom":null,"length":null,"uncoded_spaces":null,"uncoded_ft":null,"parking_lanes":null,"signs":[]}}
