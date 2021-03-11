@@ -45,7 +45,7 @@ from import_sign;
 
 drop table import_sign;
 
---delete non-parking signs
+-- delete non-parking signs
 delete from sign 
 where not (
     mutcd_code in ('PL', 'BL', 'CL') 
@@ -53,6 +53,10 @@ where not (
     or mutcd_code like 'SP-%' 
     or mutcd_code like 'R7-%'
 );
+
+-- delete locations that have no signs
+delete from location
+where order_no not in (select order_no from sign group by order_no); 
 
 -- street_segment
 
