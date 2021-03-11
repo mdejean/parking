@@ -148,5 +148,10 @@ where (
 ) or geom is null
 or ST_IsEmpty(geom);
 
+-- negative ST_OffsetCurve (right side of street) reverses lines, so re-reverse them
+update blockface_geom
+set geom = ST_Reverse(geom)
+where sos = 'r';
+
 create index ix_blockface_geom_bctcb2010 on blockface_geom(bctcb2010);
 create index ix_blockface_geom_geom on blockface_geom using gist(geom);
