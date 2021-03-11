@@ -16,8 +16,17 @@ var orders = null;
 var selected = null;
 var order = null;
 
+var boro = Math.floor(Math.random() * 5) + 1;
+
+if (window.location.search) {
+    let sp = new URLSearchParams(window.location.search);
+    if (sp.get('boro')) {
+        boro = sp.get('boro');
+    }
+}
+
 async function load() {
-    let f = await fetch('data/blockface/1.json');
+    let f = await fetch('data/blockface/' + boro + '.json');
     let blockfaces = await f.json();
     for (let blockface in blockfaces) {
         let feature = L.GeoJSON.asFeature(blockfaces[blockface]);
@@ -25,7 +34,7 @@ async function load() {
         features_layer.addData(feature);
     }
     
-    f = await fetch('data/order/1.json');
+    f = await fetch('data/order/' + boro + '.json');
     orders = await f.json();
     
     next();
