@@ -728,6 +728,18 @@ order by s.distx, s.seq');
                 :period, 
                 :type
             )');
+    $insert_stretch = $conn->prepare('
+            insert into parking_stretch (
+                order_no, 
+                start,
+                length, 
+                mutcd_code
+            ) values (
+                :order_no, 
+                :start,
+                :length, 
+                :mutcd_code
+            ) on conflict (order_no, start, mutcd_code) do nothing');
             
             
     $n = 0;
@@ -874,6 +886,24 @@ order by s.distx, s.seq');
         
         foreach ($parking as $stretch) {
             if ($stretch['length'] == 0) continue;
+            
+            if (empty($stretch['regs'])) {
+                $insert_stretch->execute([
+                    'order_no' => $order, 
+                    'start' => $stretch['start'],
+                    'length' => $stretch['length'],
+                    'mutcd_code' => ''
+                ]);
+            }
+            foreach ($stretch['regs'] as $reg) {
+                $insert_stretch->execute([
+                    'order_no' => $order, 
+                    'start' => $stretch['start'],
+                    'length' => $stretch['length'],
+                    'mutcd_code' => $reg->mutcd_code
+                ]);
+            }
+            
             for ($day = 0; $day < 7; $day++) {
                 $periods = [
                     'night' => [0,6*60*60], 
