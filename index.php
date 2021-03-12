@@ -1,6 +1,7 @@
 <?PHP
 
 $conn = new PDO('pgsql:dbname=parking');
+$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 function cmd($k) {
     global $argv;
