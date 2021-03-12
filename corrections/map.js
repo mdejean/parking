@@ -41,7 +41,15 @@ async function load() {
 }
 
 function next() {
-    order = orders[Math.floor(Math.random() * orders.length)];
+    let i = 0;
+    do {
+        order = orders[Math.floor(Math.random() * orders.length)];
+        for (let row of rows) {
+            if (row[0] == order.order_no) {
+                i = 10000;
+            }
+        }
+    } while (i++ < 10000);
     
     document.getElementById('sos').innerHTML = order.sos;
     document.getElementById('main_st').innerHTML = order.main_st;
