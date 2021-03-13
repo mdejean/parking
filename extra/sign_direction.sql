@@ -10,7 +10,7 @@
 round(cast(abs(cosd(bg.azimuth + d.azimuth)) as numeric), 1) d,
 count(*)
 from sign s 
-join (values ('N  ', 0), ('E  ', 90), ('S  ', 180), ('W  ', 270)) d(arrow, azimuth) on d.arrow = s.arrow
+join (values ('N', 0), ('E', 90), ('S', 180), ('W', 270)) d(arrow, azimuth) on d.arrow = s.arrow
 left join location l on s.order_no = l.order_no
 left join order_segment os on s.order_no = os.order_no 
 left join blockface_geom bg on os.blockface = bg.blockface 
@@ -22,7 +22,7 @@ left join (
 	group by street, lblockface
 ) ss on os.blockface = ss.blockface
 where mutcd_code in (select mutcd_code 
-from sign_restriction where arrow = '-->') 
+from sign_regulation where arrow = '-->') 
 and s.arrow is not null
 --and main_st ilike 'bridge st%'
 --order by abs(cosd(bg.azimuth + d.azimuth))
