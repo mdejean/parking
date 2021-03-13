@@ -42,8 +42,8 @@ async function load() {
 
 function next() {
     let i = 0;
+    let done = true;
     do {
-        let done = true;
         order = orders[Math.floor(Math.random() * orders.length)];
         for (let row of rows) {
             if (row[0] == order.order_no) {
