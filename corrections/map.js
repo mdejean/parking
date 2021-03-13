@@ -43,13 +43,14 @@ async function load() {
 function next() {
     let i = 0;
     do {
+        let done = true;
         order = orders[Math.floor(Math.random() * orders.length)];
         for (let row of rows) {
             if (row[0] == order.order_no) {
-                i = 10000;
+                done = false;
             }
         }
-    } while (i++ < 10000);
+    } while (i++ < 10000 && !done);
     
     document.getElementById('sos').innerHTML = order.sos;
     document.getElementById('main_st').innerHTML = order.main_st;
