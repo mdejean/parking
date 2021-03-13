@@ -40,6 +40,10 @@ echo "map order_no to blockfaces..."
 
 psql -v ON_ERROR_STOP=1 -f order_segment.sql parking
 php -f index.php order_segment
+# run this multiple times to try to get order_segment to be a one-to-one mapping 
+psql -v ON_ERROR_STOP=1 -f order_segment_post.sql parking
+psql -v ON_ERROR_STOP=1 -f order_segment_post.sql parking
+psql -v ON_ERROR_STOP=1 -f order_segment_post.sql parking
 
 echo "interpret signs..."
 
