@@ -29,7 +29,7 @@ $$ language SQL;
 
 create or replace function MultiLineSubstring(line geometry, startfraction float8, endfraction float8) returns geometry as $$
 select 
-    ST_Union(
+    ST_Collect(
         ST_LineSubstring(
             s.geom, 
             case 

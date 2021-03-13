@@ -29,8 +29,10 @@ with ss as (
             nodeidfrom,
             nodeidto,
             cast(number_par as int) parking_lanes,
-            geom
-        from street_segment
+            g2.path,
+            g2.geom
+        from street_segment ss2
+        left join lateral ST_Dump(ss2.geom) g2 on true
         where rb_layer in ('R', 'B') --exclude generic segments
         and specaddr is null --exclude alternate address segments
 )
@@ -83,7 +85,7 @@ from (
 --option 1: orientation of this block
 --          sum(xto - xfrom) dx,
 --          sum(yto - yfrom) dy,
-        ST_Collect(geom order by facecode, seqnum) geom,
+        ST_Collect(geom order by facecode, seqnum, path) geom,
         right(min(seqnum || nodeidfrom), 7) nodeidfrom,
         right(max(seqnum || nodeidto), 7) nodeidto,
         max(parking_lanes) parking_lanes
@@ -100,7 +102,7 @@ from (
         min(width) width,
 --          sum(xto - xfrom) dx,
 --          sum(yto - yfrom) dy,
-        ST_Collect(geom order by facecode, seqnum) geom,
+        ST_Collect(geom order by facecode, seqnum, path) geom,
         right(min(seqnum || nodeidfrom), 7) nodeidfrom,
         right(max(seqnum || nodeidto), 7) nodeidto,
         max(parking_lanes) parking_lanes
