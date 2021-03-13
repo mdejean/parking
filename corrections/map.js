@@ -41,7 +41,16 @@ async function load() {
 }
 
 function next() {
-    order = orders[Math.floor(Math.random() * orders.length)];
+    let i = 0;
+    let done = true;
+    do {
+        order = orders[Math.floor(Math.random() * orders.length)];
+        for (let row of rows) {
+            if (row[0] == order.order_no) {
+                done = false;
+            }
+        }
+    } while (i++ < 10000 && !done);
     
     document.getElementById('sos').innerHTML = order.sos;
     document.getElementById('main_st').innerHTML = order.main_st;
