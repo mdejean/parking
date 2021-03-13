@@ -1,1 +1,1 @@
-{"S-01463574":{"main_st":"NATIONAL DRIVE","from_st":"EAST   66 STREET","to_st":"EAST   65 STREET","sos":"N","error":null,"geom":null,"length":null,"uncoded_spaces":null,"uncoded_ft":null,"parking_lanes":null,"signs":[{"seq":"1","distx":"0","arrow":"NULL","mutcd_code":"CL","geom":null},{"seq":"2","distx":"10","arrow":"NULL","mutcd_code":"PL","geom":null},{"seq":"3","distx":"91","arrow":"E","mutcd_code":"SP-477BA","geom":null},{"seq":"9","distx":"219","arrow":"NULL","mutcd_code":"PL","geom":null},{"seq":"10","distx":"229","arrow":"NULL","mutcd_code":"CL","geom":null}]}}
+[]
