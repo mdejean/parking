@@ -1,5 +1,6 @@
 map/data
 corrections/data
+parking_shapefile/parking.*
 import/
 blockface
 .gh_pages
