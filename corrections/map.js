@@ -69,7 +69,17 @@ function next() {
         });
     } else {
         selected = null;
-        map.setView([40.7358,-73.9243], 10);
+        if (order.from_pt || order.to_pt) {
+            let from = order.from_pt.split(' ');
+            let to = order.from_pt.split(' ');
+            from[0] = parseFloat(from[0]);
+            from[1] = parseFloat(from[1]);
+            to[0] = parseFloat(to[0]);
+            to[1] = parseFloat(to[1]);
+            map.fitBounds([from, to], {padding: [50, 50]});
+        } else {
+            map.setView([40.7358,-73.9243], 10);
+        }
         from.remove();
         to.remove();
     }
