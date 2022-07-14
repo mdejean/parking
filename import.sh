@@ -15,12 +15,12 @@ iconv -f latin1 -t utf-8 import/signs.csv | ogr2ogr -f "PostgreSQL" PG:"dbname=p
 ogr2ogr import/lion.shp import/lion/lion.gdb lion
 shp2pgsql -I -D -s 2263 import/lion.shp street_segment | psql -v ON_ERROR_STOP=1 parking
 shp2pgsql -I -D -s 2263 import/nybb.shp borough | psql -v ON_ERROR_STOP=1 parking
-shp2pgsql -I -D -s 2263 import/nyct2010wi.shp census_tract | psql -v ON_ERROR_STOP=1 parking
+shp2pgsql -I -D -s 2263 import/nyct2020wi.shp census_tract | psql -v ON_ERROR_STOP=1 parking
 shp2pgsql -I -D -s 2263 import/nycb2010wi.shp census_block | psql -v ON_ERROR_STOP=1 parking
 shp2pgsql -I -D -s 4326 -m import/columns.txt import/Parking_Regulation_Shapefile/Parking_Regulation_Shapefile.shp parking_regulation | psql -v ON_ERROR_STOP=1 parking
 shp2pgsql -I -D -s 2263 import/DEPHydrants/DEPHYDRANTS.shp hydrant | psql -v ON_ERROR_STOP=1 parking
 
-shp2pgsql -I -D -s 2263 import/MapPLUTO.shp pluto | psql -v ON_ERROR_STOP=1 parking
+shp2pgsql -I -D -s 2263 import/MapPLUTO_UNCLIPPED.shp pluto | psql -v ON_ERROR_STOP=1 parking
 ogr2ogr -f "PostgreSQL" PG:"dbname=parking" -overwrite -nln import_garage -lco GEOMETRY_NAME=geom -oo X_POSSIBLE_NAMES=longitude -oo Y_POSSIBLE_NAMES=latitude -oo AUTODETECT_TYPE=YES -oo EMPTY_STRING_AS_NULL=YES import/Active_DCA-Licensed_Garages_and_Parking_Lots.csv
 
 ogr2ogr -f "PostgreSQL" PG:"dbname=parking" -overwrite -nln import_employment -oo AUTODETECT_TYPE=YES -oo EMPTY_STRING_AS_NULL=YES import/census/NY_2012thru2016_A202105.csv

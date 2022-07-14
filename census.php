@@ -10,7 +10,7 @@ $vars = [
 $boroughs = ['061' => 1, '005' => 2, '047' => 3, '081' => 4, '085' => 5];
 
 $a = json_decode(
-        file_get_contents('https://api.census.gov/data/2019/acs/acs5?get='
+        file_get_contents('https://api.census.gov/data/2020/acs/acs5?get='
         . implode(',', array_map(function($s) {return $s.'E,'.$s.'M';}, array_keys($vars)))
         . '&for=tract:*&in=state:36+county:061,047,085,081,005')
     );
