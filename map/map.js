@@ -206,14 +206,6 @@ var chart = new Chart(chart_ctx, {
                 stacked: true
             }
         },
-        tooltip: {
-            enabled: false,
-            position: 'nearest',
-            external: externalTooltipHandler
-        },
-        legend: {
-            display: false
-        },
         animation: {
             active: {
                 duration: 0
@@ -222,6 +214,16 @@ var chart = new Chart(chart_ctx, {
                 duration: 0
             },
             duration: 0 // general animation time
+        },
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                enabled: false,
+                position: 'nearest',
+                external: externalTooltipHandler
+            }
         }
     }
 });
