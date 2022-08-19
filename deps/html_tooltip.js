@@ -27,7 +27,7 @@ const externalTooltipHandler = (context) => {
     }
 
     // Set Text
-    if (tooltip.body) {
+    //if (tooltip.body) {
         const titleLines = tooltip.title || [];
         const bodyLines = tooltip.body.map(b => b.lines);
 
@@ -53,8 +53,6 @@ const externalTooltipHandler = (context) => {
             const span = document.createElement('span');
             span.style.background = colors.backgroundColor;
             span.style.borderColor = colors.borderColor;
-            span.style.borderWidth = '2px';
-            span.style.marginRight = '10px';
             span.className = 'chartjs-tooltip-key';
 
             const tr = document.createElement('tr');
@@ -82,19 +80,19 @@ const externalTooltipHandler = (context) => {
         // Add new children
         tableRoot.appendChild(tableHead);
         tableRoot.appendChild(tableBody);
-    }
+    //}
 
     const {offsetLeft: positionX, offsetTop: positionY} = chart.canvas;
 
     // Display, position, and set styles for font
     tooltipEl.style.opacity = 1;
     tooltipEl.style.left = positionX + tooltip.caretX + 'px';
-    tooltipEl.style.top = 'calc(' + (positionY + tooltip.caretY - tooltip.caretPadding) + 'px - ' + (titleLines.length + bodyLines.length + 2) * 1.2 + 'em)';
+    
+    tooltipEl.style.top = 'calc(' + (positionY + tooltip.caretY) + 'px - ' + (titleLines.length + bodyLines.length + 2) * 1.2 + 'em)';
+    chart.options.plugins.tooltip.position = 'mouse';
 };
-
-Chart.defaults.global.tooltips.external = externalTooltipHandler;
-
-Chart.Tooltip.positioners.mouse = function(elements, position) {
+Chart.Tooltip.positioners.mouse = 
+    function(elements, position) {
         if (!elements.length) {
                 return false;
         }
@@ -102,6 +100,7 @@ Chart.Tooltip.positioners.mouse = function(elements, position) {
                 x: position.x,
                 y: position.y
         }
-};
+    };
+//~ Chart.defaults.global.tooltips.external = externalTooltipHandler;
 
 Chart.defaults.global.tooltips.position = 'mouse';
