@@ -91,50 +91,138 @@ async function calculate_parking() {
         }
     }
     chart.data = data;
-    chart.options.scales.xAxes[0].scaleLabel = {
+    chart.options.scales.x.scaleLabel = {
         display: true,
         labelString: (show_spaces ? "parking spaces" : "feet of curb"),
         padding: 0
     };
     chart.update();
+    
+    // update the info at the bottom
+    
+    let stats = {
+        boroughs: 0,
+        tracts: 0,
+        blocks: 0,
+        orders: 0,
+        parking_spaces: 0,
+        parking_length: 0,
+        uncoded_spaces: 0,
+        uncoded_length: 0,
+        population: 0,
+        vehicles: 0,
+        workers: 0,
+        workers_drive_alone: 0,
+        offstreet_spaces: 0,
+        public_spaces: 0
+    };
+    
+    
+    for (let feature of selection) {
+        switch (feature.properties.type) {
+            case 'borough':
+                stats.boroughs += 1; break;
+            case 'tract':
+                stats.tracts += 1; break;
+            case 'block':
+                stats.blocks += 1; break;
+            case 'order':
+                stats.orders += 1; break;
+        }
+        
+        if (feature.properties.parking_spaces) {
+            let spaces = parking_stat(feature.properties.parking_spaces);
+            stats.parking_spaces += spaces.max;
+            let length = parking_stat(feature.properties.parking_length);
+            stats.parking_length += length.max;
+        }
+        
+        if (feature.properties.uncoded_spaces) {
+            stats.uncoded_spaces += parseFloat(feature.properties.uncoded_spaces);
+            stats.uncoded_length += parseInt(feature.properties.uncoded_ft);
+        }
+        
+        if (feature.properties.population) {
+            stats.population += feature.properties.population;
+            stats.vehicles += feature.properties.vehicles;
+            stats.workers += feature.properties.workers;
+            stats.workers_drive_alone += feature.properties.workers_drive_alone;
+        }
+        
+        if (feature.properties.offstreet_spaces) {
+            stats.offstreet_spaces += parseInt(feature.properties.offstreet_spaces);
+            stats.public_spaces += feature.properties.public_spaces;
+        }
+    }
+
+    let s = "";
+    if (stats.boroughs > 0) {
+        s += stats.boroughs + " boroughs, ";
+    }
+    if (stats.tracts > 0) {
+        s += stats.tracts + " tracts, ";
+    }
+    if (stats.blocks > 0) {
+        s += stats.blocks + " blocks, ";
+    }
+    if (stats.orders > 0) {
+        s += stats.orders + " blockfaces, ";
+    }
+    if (s == "") {
+        s += "Nothing";
+    } else {
+        s = s.slice(0, -2);
+    }
+    
+    s += " selected";
+    s += "<br>" + stats.parking_length + " ft (" + stats.parking_spaces + " spaces) of curbside space ";
+    s += "<br>" + stats.uncoded_length + " ft (" + stats.uncoded_spaces + " spaces) not geocoded";
+    s += "<br>Census stats (tracts only)";  
+    s += "<br>Population: " + stats.population;  
+    s += "<br>Vehicles: " + stats.vehicles; 
+    s += "<br>Workers: " + stats.workers + " (" + stats.workers_drive_alone + " drive alone)"; 
+    s += "<br>Offstreet parking: " + stats.offstreet_spaces + " (" + stats.public_spaces + " in public (DCA-licensed) lots)";
+
+    document.getElementById('info').innerHTML = s;
 }
 
 reset_data();
 var chart_ctx = document.getElementById('chart_canvas');
 var chart = new Chart(chart_ctx, {
-    type: 'horizontalBar',
+    type: 'bar',
     data: data,
     options: {
+        interaction: {
+            mode: 'index'
+        },
+        indexAxis: 'y', //horizontal bar chart
         scales: {
-            xAxes: [{
+            x: {
                 offset: false,
                 stacked: true
-            }],
-            yAxes: [
-                {
-                    display: false,
-                    stacked: true
-                },
-                {
-                    type: 'category',
-                    labels: days
-                }
-            ]
+            },
+            y: {
+                type: 'category',
+                stacked: true
+            }
         },
-        tooltips: {
+        tooltip: {
             enabled: false,
-            intersect: false
+            position: 'nearest',
+            external: externalTooltipHandler
         },
         legend: {
             display: false
         },
         animation: {
+            active: {
+                duration: 0
+            },
+            resize: {
+                duration: 0
+            },
             duration: 0 // general animation time
-        },
-        hover: {
-            animationDuration: 0 // duration of animations when hovering an item
-        },
-        responsiveAnimationDuration: 0 // animation duration after a resize
+        }
     }
 });
 
@@ -572,5 +660,15 @@ toolbox.onAdd = (map) => {
 };
 
 toolbox.addTo(map);
+
+var info = L.control({position: 'bottomleft'});
+
+info.onAdd = (map) => {
+    let f = L.DomUtil.create('div');
+    f.id = 'info';
+    return f;
+};
+
+info.addTo(map);
 
 window.addEventListener('load', load);
