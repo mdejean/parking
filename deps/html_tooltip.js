@@ -2,16 +2,23 @@
 
 //from chartjs examples
 
-var _htmlTooltip = function(tooltip) {
-    // Tooltip Element
-    var tooltipEl = document.getElementById('chartjs-tooltip');
+const getOrCreateTooltip = (chart) => {
+    let tooltipEl = chart.canvas.parentNode.querySelector('div');
 
     if (!tooltipEl) {
         tooltipEl = document.createElement('div');
         tooltipEl.id = 'chartjs-tooltip';
         tooltipEl.innerHTML = '<table></table>';
-        this._chart.canvas.parentNode.appendChild(tooltipEl);
+        chart.canvas.parentNode.appendChild(tooltipEl);
     }
+
+    return tooltipEl;
+};
+
+const externalTooltipHandler = (context) => {
+    // Tooltip Element
+    const {chart, tooltip} = context;
+    const tooltipEl = getOrCreateTooltip(chart);
 
     // Hide if no tooltip
     if (tooltip.opacity === 0) {
@@ -19,63 +26,81 @@ var _htmlTooltip = function(tooltip) {
         return;
     }
 
-    // Set caret Position
-    tooltipEl.classList.remove('above', 'below', 'no-transform');
-    if (tooltip.yAlign) {
-        tooltipEl.classList.add(tooltip.yAlign);
-    } else {
-        tooltipEl.classList.add('no-transform');
-    }
-
-    function getBody(bodyItem) {
-        return bodyItem.lines;
-    }
-
     // Set Text
-    if (tooltip.body) {
-        var titleLines = tooltip.title || [];
-        var bodyLines = tooltip.body.map(getBody);
+    //if (tooltip.body) {
+        const titleLines = tooltip.title || [];
+        const bodyLines = tooltip.body.map(b => b.lines);
 
-        var innerHtml = '<thead>';
+        const tableHead = document.createElement('thead');
 
-        titleLines.forEach(function(title) {
-            innerHtml += '<tr><th>' + title + '</th></tr>';
+        titleLines.forEach(title => {
+            const tr = document.createElement('tr');
+            tr.style.borderWidth = 0;
+
+            const th = document.createElement('th');
+            th.style.borderWidth = 0;
+            const text = document.createTextNode(title);
+
+            th.appendChild(text);
+            tr.appendChild(th);
+            tableHead.appendChild(tr);
         });
-        innerHtml += '</thead><tbody>';
 
-        bodyLines.forEach(function(body, i) {
-            var colors = tooltip.labelColors[i];
-            var style = 'background:' + colors.backgroundColor;
-            style += '; border-color:' + colors.borderColor;
-            style += '; border-width: 2px';
-            var span = '<span class="chartjs-tooltip-key" style="' + style + '"></span>';
-            innerHtml += '<tr><td>' + span + body + '</td></tr>';
+        const tableBody = document.createElement('tbody');
+        bodyLines.forEach((body, i) => {
+            const colors = tooltip.labelColors[i];
+
+            const span = document.createElement('span');
+            span.style.background = colors.backgroundColor;
+            span.style.borderColor = colors.borderColor;
+            span.className = 'chartjs-tooltip-key';
+
+            const tr = document.createElement('tr');
+            tr.style.backgroundColor = 'inherit';
+            tr.style.borderWidth = 0;
+
+            const td = document.createElement('td');
+            td.style.borderWidth = 0;
+
+            const text = document.createTextNode(body);
+
+            td.appendChild(span);
+            td.appendChild(text);
+            tr.appendChild(td);
+            tableBody.appendChild(tr);
         });
-        innerHtml += '</tbody>';
 
-        var tableRoot = tooltipEl.querySelector('table');
-        tableRoot.innerHTML = innerHtml;
-    }
+        const tableRoot = tooltipEl.querySelector('table');
 
-    var positionY = this._chart.canvas.offsetTop;
-    var positionX = this._chart.canvas.offsetLeft;
+        // Remove old children
+        while (tableRoot.firstChild) {
+            tableRoot.firstChild.remove();
+        }
+
+        // Add new children
+        tableRoot.appendChild(tableHead);
+        tableRoot.appendChild(tableBody);
+    //}
+
+    const {offsetLeft: positionX, offsetTop: positionY} = chart.canvas;
 
     // Display, position, and set styles for font
     tooltipEl.style.opacity = 1;
     tooltipEl.style.left = positionX + tooltip.caretX + 'px';
-    tooltipEl.style.top = 'calc(' + (positionY + tooltip.caretY - tooltip.caretPadding) + 'px - ' + (titleLines.length + bodyLines.length + 2) * 1.2 + 'em)';
+    
+    tooltipEl.style.top = 'calc(' + (positionY + tooltip.caretY) + 'px - ' + (titleLines.length + bodyLines.length + 2) * 1.2 + 'em)';
+    chart.options.plugins.tooltip.position = 'mouse';
 };
-
-Chart.defaults.global.tooltips.custom = _htmlTooltip;
-
-Chart.Tooltip.positioners.mouse = function(elements, position) {
-    if (!elements.length) {
-        return false;
-    }
-    return {
-        x: position.x,
-        y: position.y
-    }
-};
+Chart.Tooltip.positioners.mouse = 
+    function(elements, position) {
+        if (!elements.length) {
+                return false;
+        }
+        return {
+                x: position.x,
+                y: position.y
+        }
+    };
+//~ Chart.defaults.global.tooltips.external = externalTooltipHandler;
 
 Chart.defaults.global.tooltips.position = 'mouse';
